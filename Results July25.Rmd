@@ -1,0 +1,1828 @@
+---
+title: "Experiment Status Quo Applications"
+subtitle: "Analysis July 19"
+author: "Omar Vasquez Duque"
+  
+output:
+  bookdown::pdf_book:
+    dev: cairo_pdf
+    keep_tex:  true
+fontsize: 11pt
+toc: false
+
+header-includes:
+   - \setlength\parindent{24pt}
+   - \usepackage{float}
+   - \usepackage{flafter}
+   - \usepackage{pdflscape}
+   - \usepackage{rotating}
+---
+
+```{r include=FALSE}
+library(readr)
+library(janitor)
+library(extrafont)
+library(extrafontdb)
+library(Cairo)
+loadfonts()
+library(tidyverse)
+
+source('Theme_Publication.R')
+
+df <- read_csv("Search+Prolific_July+12,+2023_22.29.csv") # Experiment 1
+
+dat <- read_csv("Search+Prolific+July+13_July+14,+2023_14.23.csv") # Experiment 2
+
+options(scipen=999)
+
+```
+
+# Method
+
+## Experimental Design
+
+The data come from two experiments the author ran on Prolific between July 13 and July 14, 2023. Both were trivia games in which the participants had to look for the answers to either 6 or 5 questions (available in the Appendix). The respondents were incentivized to find the correct answers. The regular compensation was \$1 for a 6-minute task. Every participant that found the 5 or 6 correct answers doubled her compensation to \$2. In the first experiment, half of the questions were about popular culture and the other half about weather forecasts. This design intended to compare possible status quo effects in search with those of weather applications, assuming people would have a stronger preference in the case of search engines. The second experiment focused solely on search, intending to measure the exclusive use of the default over the 5-question period.
+
+There were two experimental conditions in the first study: (i) a *forced-choice condition*, in which each participant chose a search engine and/or a weather application to play the trivia game, and (ii) a *default condition*, in which each participant was assigned to a search engine and/or weather application by default. The possible defaults were Google, Bing, Yahoo, and DuckDuck Go for search; and the Weather Channel, AccuWeather, and WeatherUnderground for weather forecasts.[^1] In the second experiment, there was only a default condition with two possible options: Bing and Google.
+
+[^1]: For search, there was an equal probability of being assigned to the forced choice or default condition. In the weather applications part, a 25% chance of either having to choose an app, and a 25% of being assigned to one of the three defaults. The difference is because the author did not have a strong prior about status quo effects in weather applications.
+
+In the first study, each participant was randomly assigned to one of the conditions in each part (i.e. search and weather forecasts). This means each participant could have been assigned to the forced choice condition in the first half of the study and then to a default condition in the second one. The second study focused solely on search. Thus, the five questions presented there were about popular culture.[^2] In both studies, the participants read a multiple choice question, chose one of the possible answers, and then immediately reported what application(s) they had used to find the answer.
+
+[^2]: In this new study, the author included an additional manipulation that did not affect the outcomes. Said failed manipulation was the addition of a video the participants had to watch right before seeing the first question, which intended to manipulate people's attention.
+
+```{r include=FALSE}
+
+# Data cleaning for first and second experiment (df = first, dat = second)
+
+df = df %>% 
+  clean_names() %>% 
+    slice(-c(1,2)) # first two rows repeat var names 
+
+dat = dat %>% 
+  clean_names() %>% 
+    slice(-c(1,2)) # first two rows repeat var names 
+
+```
+
+```{r include=FALSE}
+
+#More cleaning
+
+df = df %>% 
+  filter(consent ==1, #filters out did not consent
+         distribution_channel == "anonymous", # filters out previews
+         q14 == "5", # attention check
+         q15 == "7", # bot check
+         !is.na(app_cupertino)) # filters out incompletes
+
+dat = dat %>% 
+  filter(consent ==1, #filters out did not consent
+         distribution_channel == "anonymous", # filters out previews
+         q14 == "5", # attention check
+         q15 == "7",
+         !is.na(q37))# bot check
+
+```
+
+```{r include=FALSE}
+# filter responses too quick and too slow 
+
+df$duration_in_seconds = as.numeric(df$duration_in_seconds) # changes var type
+
+median_completion = median(df$duration_in_seconds) # creates median variable
+
+df2 = df %>% 
+  filter(duration_in_seconds >= 0.5 * median_completion & duration_in_seconds <=1.75*median_completion) # n lowers to 257
+
+dat$duration_in_seconds = as.numeric(dat$duration_in_seconds) # changes var type
+
+median_completion2 = median(dat$duration_in_seconds) # creates median variable
+
+dat2 = dat %>% 
+  filter(duration_in_seconds >= 0.5 * median_completion2 & duration_in_seconds <=1.75*median_completion2) # n does not change
+
+```
+
+```{r eval=FALSE, include=FALSE}
+
+#'*for later*
+# df7 = df %>% 
+#   select(-c(start_date:ip_address),
+#          -c(recorded_date:user_language),
+#          -(ends_with("click")),
+#          -(ends_with("count")),
+#          -(ends_with("questions")),
+#          -c(q38, rid, gc, q41_page_submit))
+
+#df7 = df7 %>% na.omit()
+```
+
+## Sample
+
+Prolific recruited 344 people to participate in the first experiment, and 416 in the second one. After filtering the responses of those who did not pass attention checks, did not complete the questionnaire, and responded either 50% below or 175% above the median completion time, the final sample sample sizes lower to 257 and 319 for the first and second experiments, respectively. The only two restrictions that applied to the participant poll were that they needed to reside in the U.S. and be fluent in English. Both samples were highly educated. Most of the respondents had a college degree. The mean age of the participants was 38 in the first experiment and 42 in the second one. Almost half of the participants identified as female. Slightly below 5% of the samples identified as non-binary or preferred not to disclose their gender. The Appendix contains two tables displaying descriptive statistics of each sample and performing a balance test among the experimental conditions, which were strongly balanced.
+
+```{r include=FALSE}
+
+df2 = df2 %>% 
+  mutate(age = 2023-as.numeric(q32),
+         education = case_when(q33==1 ~ "some high-school",
+                               q33==2 ~ "high school",
+                               q33==3 ~ "some college",
+                               q33==4 ~ "college degree",
+                               q33==5 ~ "graduate degree"),
+         computer_use = case_when(q34==1 ~ "up to 2 hours/day",
+                                  q34==2 ~ "between 2-4 hours/day",
+                                  q34==3 ~ "between 4-6 hours/day",
+                                  q34==4 ~ "between 6-8 hours/day",
+                                  q34==5 ~ "more than 8 hours/day"),
+         gender = case_when(q35==1 ~ "male",
+                            q35==2 ~ "female",
+                            q35==3 ~ "non-binary",
+                            q35==4 ~"prefer not to say"),
+         ethnicity = case_when(q36==1 ~ "white",
+                               q36==2 ~"african american",
+                               q36==3 ~ "asian",
+                               q36==4 ~ "american indian",
+                               q36==5 ~ "native hawaiian or pacific islander",
+                               q36==6 ~ "other",
+                               q36==7 ~ "hispanic")) 
+
+               
+
+dat2 = dat2 %>% 
+  mutate(age = 2023-as.numeric(q32),
+         education = case_when(q33==1 ~ "some high-school",
+                               q33==2 ~ "high school",
+                               q33==3 ~ "some college",
+                               q33==4 ~ "college degree",
+                               q33==5 ~ "graduate degree"),
+         computer_use = case_when(q34==1 ~ "up to 2 hours/day",
+                                  q34==2 ~ "between 2-4 hours/day",
+                                  q34==3 ~ "between 4-6 hours/day",
+                                  q34==4 ~ "between 6-8 hours/day",
+                                  q34==5 ~ "more than 8 hours/day"),
+         gender = case_when(q35==1 ~ "male",
+                            q35==2 ~ "female",
+                            q35==3 ~ "non-binary",
+                            q35==4 ~"prefer not to say"),
+         ethnicity = case_when(q36==1 ~ "white",
+                               q36==2 ~"african american",
+                               q36==3 ~ "asian",
+                               q36==4 ~ "american indian",
+                               q36==5 ~ "native hawaiian or pacific islander",
+                               q36==6 ~ "other",
+                               q36==7 ~ "hispanic"))       
+
+```
+
+```{r include=FALSE}
+# Create treatment vars
+
+df2 = df2 %>% 
+  mutate(choice_search = ifelse(survey_version == "1", 1, 0),
+         default_search = ifelse(survey_version == "2", 1, 0),
+         choice_weather = ifelse(survey_type_weather == "1", 1,0),
+         default_weather = ifelse(survey_type_weather == "2", 1, 0))
+
+dat2 = dat2 %>% 
+  mutate(Bing_default = ifelse(fl_12_do == "Bing_default", 1, 0))
+
+mean(df2$choice_search) # good balance
+
+mean(df2$default_search) # sanity check. All good
+
+#'* Does not apply to second experiment (only default condition)*
+```
+
+```{r include=FALSE}
+
+dfbal = df2 %>% 
+  select(age,education, computer_use, gender, ethnicity, choice_search)
+
+datbal = dat2 %>% 
+  select(age,education, computer_use, gender, ethnicity, Bing_default)
+
+library(vtable)
+```
+
+```{r include=FALSE}
+
+#'*var creation for analysis*
+# Create vars for search experiment
+
+dfexp = df2 %>% 
+  mutate(chose_google = if_else(choice_screen == 1, 1, 0, NULL),
+         chose_duckduckgo = if_else(choice_screen == 2,1,0, NULL),
+         chose_bing = if_else(choice_screen == 3, 1,0, NULL),
+         chose_ecosia = if_else(choice_screen == 4, 1, 0, NULL),
+         chose_yahoo = if_else(choice_screen == 5,1,0, NULL),
+         
+         choice = factor(case_when(chose_google == 1 ~ "Google",
+                            chose_bing == 1 ~ "Bing",
+                            chose_duckduckgo == 1 ~ "DuckDuck Go",
+                            chose_yahoo == 1 ~ "Yahoo"),
+                         levels = c("Google", 
+                                    "Bing", 
+                                    "DuckDuck Go", 
+                                    "Yahoo")),
+         
+         assigned_google = ifelse(default_assigned=="1",1,0),
+         assigned_bing = ifelse(default_assigned=="2",1,0),
+         assigned_duckduckgo = ifelse(default_assigned=="4",1,0),
+         assigned_yahoo = ifelse(default_assigned=="3",1,0),
+         
+         used_google_q1 = if_else(grepl("1", se_beatles), 1, 0, NULL),
+         used_duckduckgo_q1 = if_else(grepl("4", se_beatles),1,0,NULL),
+         used_bing_q1 = if_else(grepl("2", se_beatles),1,0,NULL),
+         used_yahoo_q1 = if_else(grepl("3", se_beatles),1,0,NULL),
+         used_other_q1 = if_else(grepl("5", se_beatles),1,0,NULL),
+         
+         used_google_q2 = if_else(grepl("1", se_alcapone), 1, 0, NULL),
+         used_duckduckgo_q2 = if_else(grepl("4", se_alcapone),1,0,NULL),
+         used_bing_q2 = if_else(grepl("2", se_alcapone),1,0,NULL),
+         used_yahoo_q2 = if_else(grepl("3", se_alcapone),1,0,NULL),
+         used_other_q2 = if_else(grepl("5", se_alcapone),1,0,NULL),
+         
+         used_google_q3 = if_else(grepl("1", se_vangogh), 1, 0, NULL),
+         used_duckduckgo_q3 = if_else(grepl("4", se_vangogh),1,0,NULL),
+         used_bing_q3 = if_else(grepl("2", se_vangogh),1,0,NULL),
+         used_yahoo_q3 = if_else(grepl("3", se_vangogh),1,0,NULL),
+         used_other_q3 = if_else(grepl("5", se_vangogh),1,0,NULL),
+         
+         just_one_sq1 = ifelse(str_length(se_beatles)==1, 1,0),
+         just_one_sq2 = ifelse(str_length(se_alcapone)==1, 1,0),
+         just_one_sq3 = ifelse(str_length(se_vangogh)==1, 1,0),
+
+         google_qual = q60_1,
+         bing_qual = q60_2,
+         ddg_qual = q60_3,
+         yahoo_qual = q60_5,
+         
+         google_prior = ifelse(grepl("1", q58), 1, 0),
+         ddg_pior = ifelse(grepl("2", q58),1, 0),
+         bing_prior = ifelse(grepl("3", q58), 1, 0),
+         ecosia_prior = ifelse(grepl("4", q58), 1, 0),
+         yahoo_prior = ifelse(grepl("5", q58), 1, 0),
+         other_prior = ifelse(grepl("6", q58), 1, 0),
+         across(starts_with("assigned"), as.factor), # transform all assign vars to factors
+         across(ends_with("qual"), as.numeric),
+         forced_choice_s = as.factor(choice_search),
+         forced_choice_w = as.factor(choice_weather)) # the same but for numeric )
+         
+     
+```
+
+```{r experimental vars second exp, include=FALSE}
+
+#'*Vars for second experiment*'
+# The same for second experiment
+
+datexp = dat2 %>% 
+  mutate(assigned_google = ifelse(fl_12_do == "Google_default",1,0),
+         assigned_bing = ifelse(fl_12_do == "Bing_default",1,0),
+         video = ifelse(fl_90_do == "Video",1,0),
+         
+         used_google_q1 = if_else(grepl("1", se_beatles), 1, 0, NULL),
+         used_duckduckgo_q1 = if_else(grepl("4", se_beatles),1,0,NULL),
+         used_bing_q1 = if_else(grepl("2", se_beatles),1,0,NULL),
+         used_yahoo_q1 = if_else(grepl("3", se_beatles),1,0,NULL),
+         used_other_q1 = if_else(grepl("5", se_beatles),1,0,NULL),
+         
+         used_google_q2 = if_else(grepl("1", se_alcapone), 1, 0, NULL),
+         used_duckduckgo_q2 = if_else(grepl("4", se_alcapone),1,0,NULL),
+         used_bing_q2 = if_else(grepl("2", se_alcapone),1,0,NULL),
+         used_yahoo_q2 = if_else(grepl("3", se_alcapone),1,0,NULL),
+         used_other_q2 = if_else(grepl("5", se_alcapone),1,0,NULL),
+         
+         used_google_q3 = if_else(grepl("1", se_vangogh), 1, 0, NULL),
+         used_duckduckgo_q3 = if_else(grepl("4", se_vangogh),1,0,NULL),
+         used_bing_q3 = if_else(grepl("2", se_vangogh),1,0,NULL),
+         used_yahoo_q3 = if_else(grepl("3", se_vangogh),1,0,NULL),
+         used_other_q3 = if_else(grepl("5", se_vangogh),1,0,NULL),
+         
+         used_google_q4 = if_else(grepl("1", q58_55), 1, 0, NULL),
+         used_duckduckgo_q4 = if_else(grepl("4", q58_55),1,0,NULL),
+         used_bing_q4 = if_else(grepl("2", q58_55),1,0,NULL),
+         used_yahoo_q4 = if_else(grepl("3", q58_55),1,0,NULL),
+         used_other_q4 = if_else(grepl("5", q58_55),1,0,NULL),
+         
+         used_google_q5 = if_else(grepl("1", q60), 1, 0, NULL),
+         used_duckduckgo_q5 = if_else(grepl("4", q60),1,0,NULL),
+         used_bing_q5 = if_else(grepl("2", q60),1,0,NULL),
+         used_yahoo_q5 = if_else(grepl("3", q60),1,0,NULL),
+         used_other_q5 = if_else(grepl("5", q60),1,0,NULL),
+         
+         just_one_sq1 = ifelse(str_length(se_beatles)==1, 1,0),
+         just_one_sq2 = ifelse(str_length(se_alcapone)==1, 1,0),
+         just_one_sq3 = ifelse(str_length(se_vangogh)==1, 1,0),
+         just_one_sq4 = ifelse(str_length(q58_55)==1, 1,0),
+         just_one_sq5 = ifelse(str_length(q60)==1, 1,0),
+         
+         google_qual = q60_1,
+         bing_qual = q60_2,
+         ddg_qual = q60_3,
+         yahoo_qual = q60_5,
+         
+         google_prior = ifelse(grepl("1", q58_66), 1, 0),
+         ddg_pior = ifelse(grepl("2", q58_66),1, 0),
+         bing_prior = ifelse(grepl("3", q58_66), 1, 0),
+         ecosia_prior = ifelse(grepl("4", q58_66), 1, 0),
+         yahoo_prior = ifelse(grepl("5", q58_66), 1, 0),
+         other_prior = ifelse(grepl("6", q58_66), 1, 0),
+         across(starts_with("assigned"), as.factor), # transform all assign vars to factors
+         across(ends_with("qual"), as.numeric))
+         
+```
+
+```{r Vars for weather apps analysis, include=FALSE}
+
+#'*create vars for weather apps plot*
+
+dfexp = dfexp %>% 
+  mutate(chose_wc = if_else(choice_screen_2 == 1, 1, 0, NULL),
+         chose_aw = if_else(choice_screen_2 == 2,1,0, NULL),
+         chose_wu = if_else(choice_screen_2 == 3, 1,0, NULL),
+         
+         choice_wa = factor(case_when(chose_wc == 1 ~ "Weather Channel",
+                            chose_aw == 1 ~ "AccuWeather",
+                            chose_wu == 1 ~ "Weather Underground"),
+                         levels = c("Weather Channel", 
+                                    "AccuWeather", 
+                                    "Weather Underground")),
+         
+         assigned_wc = ifelse(weather_do %in% "default_wc", 1, 0), 
+         assigned_aw = ifelse(weather_do %in% "default_aw", 1, 0),
+         assigned_wu = ifelse(weather_do %in% "default_wu", 1, 0),
+         
+         used_wc_q1 = if_else(grepl("1", app_austin), 1, 0, NULL),
+         used_aw_q1 = if_else(grepl("2", app_austin),1,0,NULL),
+         used_wu_q1 = if_else(grepl("3", app_austin),1,0,NULL),
+         used_other_q1 = if_else(grepl("4", app_austin),1,0,NULL),
+         
+         used_wc_q2 = if_else(grepl("1", app_cambridge), 1, 0, NULL),
+         used_aw_q2 = if_else(grepl("2", app_cambridge),1,0,NULL),
+         used_wu_q2 = if_else(grepl("3", app_cambridge),1,0,NULL),
+         
+         used_wc_q3 = if_else(grepl("1", app_cupertino), 1, 0, NULL),
+         used_aw_q3 = if_else(grepl("2", app_cupertino),1,0,NULL),
+         used_wu_q3 = if_else(grepl("3", app_cupertino),1,0,NULL),
+
+         wc_qual = q31_1,
+         aw_qual = q31_2,
+         wu_qual = q31_3,
+         
+         ac_prior = ifelse(grepl("1", q54), 1, 0),
+         aw_pior = ifelse(grepl("2", q54),1, 0),
+         wu_prior = ifelse(grepl("3", q54), 1, 0),
+         other_prior = ifelse(grepl("4", q54), 1, 0))
+         
+```
+
+# Results
+
+## Most of the participants clearly preferred the dominant search engine but the preferences for weather applications were divided
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# choice_se, echo=FALSE, fig.align="center", message=FALSE, warning=FALSE, out.width='0.8\\textwidth'
+
+# Check coding is correct with visualizations
+
+plot.choice.se = dfexp %>% 
+  filter(choice_search==1) %>% 
+  ggplot(aes(x=choice, fill = choice)) +
+  geom_bar(alpha = 0.7) +
+  scale_fill_discrete(drop=FALSE) + #to show columns with zeros
+          scale_x_discrete(drop=FALSE) + #to show columns with zeros
+  # theme_Publication() +
+  scale_fill_brewer(palette = "Set2") +
+  theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  theme(legend.position = "none")
+
+```
+
+```{r include=FALSE}
+
+table(dfexp$choice_weather)
+
+plot.choice.wa = dfexp %>% 
+  filter(choice_weather==1,
+         !is.na(choice_wa)) %>% 
+  ggplot(aes(x=choice_wa, fill = choice_wa)) +
+  geom_bar(alpha = 0.7) +
+  scale_fill_discrete(drop=FALSE) + #to show columns with zeros
+          scale_x_discrete(drop=FALSE) + #to show columns with zeros
+  # theme_Publication() +
+  scale_fill_brewer(palette = "Set2") +
+  theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  theme(legend.position = "none")
+
+```
+
+```{r include=FALSE}
+library(patchwork)
+library(ggpubr)
+
+```
+
+Figure \@ref(fig:preferences) below shows the participants' preferences when forced to choose the apps they wanted to use to participate in the study. This is the normative benchmark that rules out any potential exploitation of the users' inertia. In search, Google's dominance was clear. Eighty nine percent of the participants chose it. DuckDuck Go ranked second with 8% of the users' preferences, followed by Bing with 4% of the choices. No participant chose Yahoo. In contrast, the respondents' preferences for weather apps were much more balanced. The Weather Channel ranks first with 55% of the choices, AccuWeather followed it with 35%, and Weather Underground ranked last with roughly 10% of the preferences.
+
+```{r include=FALSE}
+dfexp %>% 
+  filter(choice_search==1) %>% 
+  summarize(pref_Google = mean(chose_yahoo))
+
+dfexp %>% 
+  filter(choice_weather==1) %>% 
+  summarize(pref = mean(chose_wc))
+
+dfexp %>% 
+  filter(choice_weather==1) %>% 
+  summarize(pref = mean(chose_wu))
+
+summary(dfexp$chose_wc, dfexp$chose_aw)
+
+table(dfexp$chose_wu)
+```
+
+```{r preferences, echo=FALSE, fig.align="center", fig.cap="Preferences for Search Engines and Weather Apps", message=FALSE, warning=FALSE, out.width='0.7\\textwidth'}
+
+plot.choice.se + plot.choice.wa
+```
+
+```{r include=FALSE}
+
+# test = dfexp %>% 
+#   mutate(across(starts_with("used"), as.numeric)) 
+
+#' *This worked!!! Saves a lot of time. Mind I should use "across" much more. And apply, lapply, sapply too.*
+
+# test = test %>% 
+#   mutate(nbing = used_bing_q1 + used_bing_q2 + used_bing_q3) # This works too!
+
+```
+
+## Strong immediate status quo effects in search and weather applications
+
+A status quo effect refers to the disparity in market share that an application would possess when it is set as the user's default option, as opposed to when the user is compelled to make a choice. This is formally represented as $Pa_i|D_i - Pa_i|C$, where $Pa_i|D_i$ is the probability of choosing application $a$ when it is the default, and $Pa_i|C$ is the probability of choosing the same application when its potential users are forced to choose.
+
+The statistical analysis of this section appraises status quo effects benefiting Bing, DuckDuckGo, the Weather Channel, AccuWeather, and Weather Underground. Yahoo's case is then reported with a mere frequency table. Since no participant chose Yahoo in the forced choice condition, no statistical analysis involving Yahoo is possible. [check if this is true] expected -observed. Check chi-squared. Does it run? check formula.
+
+```{r include=FALSE}
+# Create dfs for comparison with forced choice
+
+dfgoogle = dfexp %>% 
+  filter(forced_choice_s==1 | assigned_google==1) 
+
+dfbing = dfexp %>% 
+  filter(forced_choice_s==1 | assigned_bing==1) 
+
+dfyahoo = dfexp %>% 
+  filter(forced_choice_s==1 | assigned_yahoo==1) 
+
+dfddg = dfexp %>% 
+  filter(forced_choice_s==1 | assigned_duckduckgo==1) 
+```
+
+```{r include=FALSE}
+library(jtools)
+```
+
+```{r include=FALSE}
+#'*creates df for default condition*
+# DF for defaults in search
+dfexp_def_s = dfexp %>% 
+  filter(choice_search==0)
+```
+
+```{r wvars, include=FALSE}
+# The same for weather apps part
+
+dfexp2 = dfexp %>% 
+  mutate(chose_wc = if_else(choice_screen_2 == 1, 1, 0, NULL),
+         chose_aw = if_else(choice_screen_2 == 2,1,0, NULL),
+         chose_wu = if_else(choice_screen_2 == 3, 1,0, NULL),
+         
+         choice_wa = factor(case_when(chose_wc == 1 ~ "Weather Channel",
+                            chose_aw == 1 ~ "AccuWeather",
+                            chose_wu == 1 ~ "Weather Underground"),
+                         levels = c("Weather Channel", 
+                                    "AccuWeather", 
+                                    "WeatherUnderground")),
+         
+         assigned_wc = ifelse(weather_do %in% "default_wc", 1, 0), 
+         assigned_aw = ifelse(weather_do %in% "default_aw", 1, 0),
+         assigned_wu = ifelse(weather_do %in% "default_wu", 1, 0),
+         
+         used_wc_q1 = if_else(grepl("1", app_austin), 1, 0, NULL),
+         used_aw_q1 = if_else(grepl("2", app_austin),1,0,NULL),
+         used_wu_q1 = if_else(grepl("3", app_austin),1,0,NULL),
+         used_other_q1 = if_else(grepl("4", app_austin),1,0,NULL),
+         
+         used_wc_q2 = if_else(grepl("1", app_cambridge), 1, 0, NULL),
+         used_aw_q2 = if_else(grepl("2", app_cambridge),1,0,NULL),
+         used_wu_q2 = if_else(grepl("3", app_cambridge),1,0,NULL),
+         
+         used_wc_q3 = if_else(grepl("1", app_cupertino), 1, 0, NULL),
+         used_aw_q3 = if_else(grepl("2", app_cupertino),1,0,NULL),
+         used_wu_q3 = if_else(grepl("3", app_cupertino),1,0,NULL),
+
+         wc_qual = q31_1,
+         aw_qual = q31_2,
+         wu_qual = q31_3,
+         
+         ac_prior = ifelse(grepl("1", q54), 1, 0),
+         aw_pior = ifelse(grepl("2", q54),1, 0),
+         wu_prior = ifelse(grepl("3", q54), 1, 0),
+         other_prior = ifelse(grepl("4", q54), 1, 0))
+         
+```
+
+```{r Weatherplots, include=FALSE}
+
+# Weather Applications
+
+# First, data sets for plots
+dfwc = dfexp2 %>% 
+  filter(forced_choice_w==1 | assigned_wc==1) 
+
+dfaw = dfexp2 %>% 
+  filter(forced_choice_w==1 | assigned_aw==1) 
+
+dfwu = dfexp %>% 
+  filter(forced_choice_w==1 | assigned_wu==1) 
+
+# Weather Channel
+
+sqwcq1= glm(used_wc_q1 ~ forced_choice_w, data=dfwc, family ="binomial")
+
+plotwcq1 = effect_plot(sqwcq1, pred = "forced_choice_w", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotwcq1 = plotwcq1 + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+sqwcq3= glm(used_wc_q3 ~ forced_choice_w, data=dfwc, family ="binomial")
+
+plotwcq3 = effect_plot(sqwcq3, pred = "forced_choice_w", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotwcq3= plotwcq3 + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+#AccuWeather
+sqawq1= glm(used_aw_q1 ~ forced_choice_w, data=dfaw, family ="binomial")
+
+plotawq1 = effect_plot(sqawq1, pred = "forced_choice_w", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotawq1 = plotawq1 + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+sqawq3= glm(used_aw_q3 ~ forced_choice_w, data=dfaw, family ="binomial")
+
+plotawq3 = effect_plot(sqawq3, pred = "forced_choice_w", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotawq3 = plotawq3 + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+#Weather Underground
+sqwuq1= glm(used_wu_q1 ~ forced_choice_w, data=dfwu, family ="binomial")
+
+plotwuq1 = effect_plot(sqwuq1, pred = "forced_choice_w", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotwuq1 = plotwuq1 + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+sqwuq3= glm(used_wu_q3 ~ forced_choice_w, data=dfwu, family ="binomial")
+
+plotwuq3 = effect_plot(sqwuq3, pred = "forced_choice_w", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotwuq3 = plotwuq3 + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+```
+
+As just noted, most of the respondents in the forced choice condition chose Google. Only a few chose Bing (4%), and 8% chose DuckDuck Go. However, when the participants were assigned to any rival of Google by default, a very substantial part of the respondents used the default, and not only in the first question but also in the third one. Ninety percent of those assigned to DuckDuck Go used it in question 1, compared to 80% of those assigned to Bing, and 60% of those assigned to Yahoo. The effect lowered by roughly 10% in question 3. The following plots show the operationalization of status quo effects with forced choice as the benchmark. Google is the only search engine that does not directly benefit from its default position. This is because its share of preferences does not change substantially when it is people's default and when users are forced to choose.
+
+The weather application data show a similar effect. Figure \@ref(fig:Sqweather) displays that the three applications show a much higher use rate when they are assigned as people's default than when people are forced to choose. Weather Underground was the least sticky default. Fewer people stuck to it in question 1, and more switched to another application by question 3.
+
+```{r means, include=FALSE}
+
+dfbing %>% 
+  filter(choice_search==0) %>% 
+  summarize(use_Bing = mean(used_bing_q1))
+
+
+dfddg %>% 
+  filter(choice_search==0) %>% 
+  summarize(use_DDG = mean(used_duckduckgo_q1))
+
+dfyahoo %>% 
+  filter(choice_search==0) %>% 
+  summarize(use_Yahoo = mean(used_yahoo_q1))
+
+dfbing %>% 
+  filter(choice_search==0) %>% 
+  summarize(use_Bingq3 = mean(used_bing_q3))
+
+
+dfddg %>% 
+  filter(choice_search==0) %>% 
+  summarize(use_DDGq3 = mean(used_duckduckgo_q3))
+
+dfyahoo %>% 
+  filter(choice_search==0) %>% 
+  summarize(use_Yahooq3 = mean(used_yahoo_q3))
+
+
+dfexp %>% 
+  filter(choice_search==1) %>% 
+  summarize(pref_Bing = mean(chose_bing))
+```
+
+```{r Bplot, include=FALSE}
+# Bing Q1
+sqbingq1= glm(used_bing_q1 ~ forced_choice_s, data=dfbing, family ="binomial")
+
+#check effect on quality
+
+qualbing = lm(bing_qual ~ forced_choice_s, data = dfbing)
+
+summary(qualbing)
+
+plotbingq1 = effect_plot(sqbingq1, pred = "forced_choice_s", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotbingq1 = plotbingq1 +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+# Bing Q3
+sqbingq3= glm(used_bing_q3 ~ forced_choice_s, data=dfbing, family ="binomial")
+
+#check effect on quality
+
+
+plotbingq3 = effect_plot(sqbingq3, pred = "forced_choice_s", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotbingq3 = plotbingq3 +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+```
+
+```{r DDGplot, include=FALSE}
+sqddgq1= glm(used_duckduckgo_q1 ~ forced_choice_s, data=dfddg, family ="binomial")
+
+
+plotddgq1 = effect_plot(sqddgq1, pred = "forced_choice_s", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotddgq1 = plotddgq1 +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) + ylab("used_ddg_q1")
+
+# DDG Q3
+sqddgq3= glm(used_duckduckgo_q3 ~ forced_choice_s, data=dfddg, family ="binomial")
+
+#check effect on quality
+
+plotddgq3 = effect_plot(sqddgq3, pred = "forced_choice_s", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotddgq3 = plotddgq3 +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) + ylab("used_ddg_q3")
+
+```
+
+```{r Gplot, include=FALSE}
+sqgoogleq1= glm(used_google_q1 ~ forced_choice_s, data=dfgoogle, family ="binomial")
+
+
+plotgoogleq1 = effect_plot(sqgoogleq1, pred = "forced_choice_s", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotgoogleq1 = plotgoogleq1 +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+# DDG Q3
+sqgoogleq3= glm(used_google_q3 ~ forced_choice_s, data=dfgoogle, family ="binomial")
+
+#check effect on quality
+
+plotgoogleq3 = effect_plot(sqgoogleq3, pred = "forced_choice_s", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotgoogleq3 = plotgoogleq3 +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+```
+
+```{r include=FALSE}
+library(ggpubr)
+```
+
+```{r Sqsearch, echo=FALSE, fig.align="center", fig.cap="Status Quo Search Engines", message=FALSE, warning=FALSE, out.width='0.75\\textwidth'}
+
+seplotlist = ggarrange(plotbingq1, plotddgq1, plotgoogleq1, plotbingq3, plotddgq3, plotgoogleq3, ncol = 3, nrow = 2) 
+
+seplotlist
+
+ggsave(plot=seplotlist, "plot1.pdf", device = cairo_pdf, width = 10, height = 7)
+
+#'*this is the main plot!!*
+```
+
+```{r Sqweather, echo=FALSE, fig.align="center", fig.cap="Status Quo Weather Apps", message=FALSE, warning=FALSE, out.width='0.75\\textwidth'}
+
+seplotlistw = ggarrange(plotwcq1, plotawq1, plotwuq1, plotwcq3, plotawq3, plotwuq3, ncol = 3, nrow = 2) 
+
+seplotlistw
+
+ggsave(plot=seplotlistw, device = cairo_pdf, filename = "plotsqw.pdf", height = 6, width = 9)
+
+#'*main plot for weather applications*
+
+```
+
+```{r SotherD, include=FALSE}
+#Calculate with other se as default
+
+sqgq1b= glm(used_google_q1 ~ assigned_google, data=dfexp_def_s, family ="binomial")
+
+
+plotgq1b = effect_plot(sqgq1b, pred = "assigned_google", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotgq1b = plotgq1b +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) 
+
+#G q3
+sqgq3b= glm(used_google_q3 ~ assigned_google, data=dfexp_def_s, family ="binomial")
+
+
+plotgq3b = effect_plot(sqgq3b, pred = "assigned_google", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotgq3b = plotgq3b +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) 
+
+#Bing
+
+sqbingq1b= glm(used_bing_q1 ~ assigned_bing, data=dfexp_def_s, family ="binomial")
+
+
+plotbingq1b = effect_plot(sqbingq1b, pred = "assigned_bing", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotbingq1b = plotbingq1b +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) 
+
+# Bing Q3
+sqbingq3b= glm(used_bing_q3 ~ assigned_bing, data=dfexp_def_s, family ="binomial")
+
+
+plotbingq3b = effect_plot(sqbingq3b, pred = "assigned_bing", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotbingq3b = plotbingq3b +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) 
+
+# DDG
+
+sqddgq1b= glm(used_duckduckgo_q1 ~ assigned_duckduckgo, data=dfexp_def_s, family ="binomial")
+
+
+plotddgq1b = effect_plot(sqddgq1b, pred = "assigned_duckduckgo", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotddgq1b = plotddgq1b +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) + ylab("used_ddg_q1") + xlab("assigned_ddg")
+
+# DDG Q3
+sqddgq3b= glm(used_duckduckgo_q3 ~ assigned_duckduckgo, data=dfexp_def_s, family ="binomial")
+
+
+plotddgq3b = effect_plot(sqddgq3b, pred = "assigned_duckduckgo", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotddgq3b = plotddgq3b +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) + ylab("used_ddg_q3") + xlab("assigned_ddg")
+
+#Yahoo
+
+sqyahooq1b= glm(used_yahoo_q1 ~ assigned_yahoo, data=dfexp_def_s, family ="binomial")
+
+
+plotyahooq1b = effect_plot(sqyahooq1b, pred = "assigned_yahoo", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotyahooq1b = plotyahooq1b +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) 
+
+# Yahoo Q3
+sqyahooq3b= glm(used_yahoo_q3 ~ assigned_yahoo, data=dfexp_def_s, family ="binomial")
+
+
+plotyahooq3b = effect_plot(sqyahooq3b, pred = "assigned_yahoo", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1") 
+
+plotyahooq3b = plotyahooq3b +   theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10")) 
+
+```
+
+```{r include=FALSE}
+dfexp_def_s %>% 
+  filter(assigned_yahoo==1) %>% 
+  summarise(q1 = mean(used_yahoo_q1),
+            q2 = mean(used_yahoo_q2),
+            q3 = mean(used_yahoo_q3))
+```
+
+```{r calcs, include=FALSE}
+dfexp_def_s %>% 
+  filter(assigned_google==0) %>% 
+  summarize(m = mean(used_google_q3))
+```
+
+```{r Wdefsplot, include=FALSE}
+dfwadef = dfexp2 %>% 
+  filter(choice_weather==0) %>% 
+  mutate(across(starts_with("assigned"), as.factor)) 
+
+# Weather Channel
+
+sqwcq1b= glm(used_wc_q1 ~ assigned_wc, data=dfwadef, family ="binomial")
+
+plotwcq1b = effect_plot(sqwcq1b, pred = "assigned_wc", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotwcq1b = plotwcq1b + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+sqwcq3b= glm(used_wc_q3 ~ assigned_wc, data=dfwadef, family ="binomial")
+
+plotwcq3b = effect_plot(sqwcq3b, pred = "assigned_wc", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotwcq3b= plotwcq3b + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+#AccuWeather
+sqawq1b= glm(used_aw_q1 ~ assigned_aw, data=dfwadef, family ="binomial")
+
+plotawq1b = effect_plot(sqawq1b, pred = "assigned_aw", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotawq1b = plotawq1b + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+sqawq3b= glm(used_aw_q3 ~ assigned_aw, data=dfwadef, family ="binomial")
+
+plotawq3b = effect_plot(sqawq3b, pred = "assigned_aw", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotawq3b = plotawq3b + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+#Weather Underground
+sqwuq1b= glm(used_wu_q1 ~ assigned_wu, data=dfwadef, family ="binomial")
+
+plotwuq1b = effect_plot(sqwuq1b, pred = "assigned_wu", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotwuq1b = plotwuq1b + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+sqwuq3b= glm(used_wu_q3 ~ assigned_wu, data=dfwadef, family ="binomial")
+
+plotwuq3b = effect_plot(sqwuq3b, pred = "assigned_wu", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotwuq3b = plotwuq3b + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+```
+
+```{r wcalcs, include=FALSE}
+dfexp2 %>% 
+  filter(forced_choice_w==0) %>% 
+  summarize(wcq1 = mean(used_wc_q1),
+            wcq2 = mean(used_wc_q2),
+            wcq3 = mean(used_wc_q3),
+            awq1 = mean(used_aw_q1),
+            awq2 = mean(used_aw_q2),
+            awq3 = mean(used_aw_q3),
+            wuq1 = mean(used_wu_q1),
+            wuq2 = mean(used_wu_q2),
+            wuq3 = mean(used_wu_q3))
+```
+
+```{r}
+
+```
+
+
+## Google's Use Goes Down When Another Search Engine is the Users' Default
+
+Google does not benefit from a default effect. However, Google's rivals do. And when a rival of Google increases its use, Google's use goes down. In fact, only roughly 20% of the participants used Google to find the answer to the first question when assigned to any of Google's rivals by default. However, the number goes up to 32% in question 3. Figure \@ref(fig:Sqsearchb) shows this effect. It also shows that Google was the only option the participants tended to use in addition to their default.
+
+Nonetheless, there is an "adjustment" effect. The respondents not assigned to Google by default tended to use Google in the last questions. The second experiment showed that almost half of those assigned to Bing by default used Google in question 5.
+
+## Default affects people's perceptions about the quality of Bing and DuckDuck Go
+
+The default assignment leads people to experiment with alternative search engines they perceived were worse than they thought. This effect is clear for Bing and DuckDuck Go. Yahoo's quality does not change among the experimental conditions. No quality changes show in the weather applications experiment.
+
+```{r}
+
+```
+
+
+```{r include=FALSE}
+
+qualbing = lm(bing_qual ~ default_search *used_bing_q1, data = dfbing)
+
+summary(qualbing)
+
+ qualddg = lm(ddg_qual ~ default_search, data = dfddg)
+
+summary(qualddg)
+
+qualyahoo = lm(yahoo_qual ~ default_search, data = dfyahoo)
+
+summary(qualyahoo)
+
+qualgoogle = lm(google_qual ~ default_search, data = dfgoogle)
+
+summary(qualgoogle)
+
+library(stargazer)
+
+stargazer(qualgoogle, qualbing, qualddg, qualyahoo, type = "html", out = "tab1.html", title = "Default Assignment's Effect on Perceived Quality", header = FALSE)
+```
+
+```{r include=FALSE}
+
+qualwc = lm(wc_qual ~ forced_choice_w, data = dfwc)
+
+summary(qualwc)
+
+qualaw = lm(aw_qual ~ forced_choice_w, data = dfaw)
+
+summary(qualaw)
+
+qualwu = lm(wu_qual ~ forced_choice_w, data = dfwu)
+
+summary(qualwu)
+
+```
+
+```{r include=FALSE}
+library(stargazer)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width='0.5\\textwidth', results='asis'}
+
+stargazer(qualbing, qualddg, qualyahoo, qualgoogle, 
+          type = "latex", 
+          header = FALSE, 
+          title = "Default's Effect on Perceived Quality",
+          font.size = "small", 
+          float.env = "sidewaystable",
+          label = "tab:quals",
+          column.sep.width = "3pt") # to reduce column width)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width='0.5\\textwidth', results='asis'}
+
+stargazer(qualwc, qualaw, qualwu, 
+          type = "latex", 
+          header = FALSE, 
+          title = "Default's Effect on Perceived Quality",
+          font.size = "small", 
+         # float.env = "sidewaystable",
+          label = "tab:quals2",
+          column.sep.width = "3pt") # to reduce column width)
+
+```
+
+```{r}
+dfexp2 = dfexp2 %>% 
+  mutate
+
+```
+
+
+checking quality > use
+
+```{r}
+dfbing = dfbing %>% 
+  mutate(qual.gap = bing_qual - bing_prior) #'*wrong! prior is prior use!*
+
+dfbing %>% 
+  filter(used_bing_q1==0) %>% 
+  summarize(qbing = mean(bing_qual))
+
+dfbing %>% 
+  filter(used_bing_q1==1) %>% 
+  summarize(qbing = mean(bing_qual))
+
+lm(dfbing, formula = used_bing_q1 ~ bing_qual)
+
+glm.bingq = glm(dfbing, formula = used_bing_q1 ~ qual.gap:default_search, family = 'binomial')
+
+summary(glm.bingq)
+
+library(survival)
+
+#'*code below not working*
+clogit(used_bing_q3 ~ used_bing_q1 + strata(prolific_id),
+                  data = dfbing)
+
+
+dfbing = dfbing %>% 
+  mutate(ntimes = used_bing_q1 + used_bing_q2 + used_bing_q3)
+
+temp1 = lm(dfbing, formula = ntimes ~ bing_qual*used_bing_q1+default_search)
+
+summary(temp1) #'*main effects are not significant*
+
+#'*do analysis with all defaults
+```
+
+```{r}
+dfexp_def_s = dfexp_def_s %>% 
+  mutate(across(starts_with("used"), as.numeric)) 
+
+
+dfexp_def_s = dfexp_def_s %>% 
+  mutate(def_qual = case_when(se_assigned=="Google" ~ google_qual,
+                              se_assigned=="Bing" ~ bing_qual,
+                              se_assigned=="Yahoo" ~ yahoo_qual,
+                              se_assigned=="DuckDuck Go" ~ ddg_qual),
+         used_def_q1 = case_when(se_assigned=="Google" ~ used_google_q1,
+                                 se_assigned=="Bing" ~ used_bing_q1,
+                                 se_assigned=="Yahoo" ~ used_yahoo_q1,
+                                 se_assigned=="DuckDuck Go" ~ used_duckduckgo_q1),
+         previous_use = case_when(se_assigned=="Google" ~ google_prior,
+                                 se_assigned=="Bing" ~ bing_prior,
+                                 se_assigned=="Yahoo" ~ yahoo_prior,
+                                 se_assigned=="DuckDuck Go" ~ ddg_pior),
+         ntimes = case_when(se_assigned=="Google" ~ used_google_q1 + used_google_q2 + used_google_q3,
+                            se_assigned=="Bing" ~ used_bing_q1 + used_bing_q2 + used_bing_q3,
+                            se_assigned=="Yahoo" ~ used_yahoo_q1 + used_yahoo_q2 + used_yahoo_q3,
+                            se_assigned=="DuckDuck Go" ~ used_duckduckgo_q1+ used_duckduckgo_q2+ used_duckduckgo_q3))
+```
+
+```{r}
+mean(dfexp_def_s$ntimes)
+```
+
+```{r}
+table(dfexp_def_s$default_search)
+```
+
+
+```{r}
+temp1 = lm(dfexp_def_s, formula = ntimes ~ def_qual+used_def_q1 + previous_use)
+
+summary(temp1) #'*main effects are not significant*
+```
+
+
+
+## "Adjustment": Downward Trend of Default Effects in Search
+
+DuckDuck Go, Bing and Yahoo exhibited stronger default effects in question 1 than question 3. This was also the Weather Underground's case. This trend motivated the author to run the second experiment, which focused exclusively on search. In this second study there was just a default condition and five questions. The participants were randomly assigned to either Google or Bing by default (with an equal probability). Figure \@ref(fig:Bing1v5) shows how Bing's default effect went down from roughly 75% in question 1 to 50% in question 5, a difference that is substantially and statistically significant (McNemar's Chi-squared test p \< 0.01).
+
+```{r chisqb1v5, include=FALSE}
+
+mcnemar.test(datexp$used_bing_q1, datexp$used_bing_q5)
+
+lm(data=datexp, formula = used_bing_q5 ~ assigned_bing*used_bing_q1) # not sure about how to model this
+
+#'*this can be important. q1 seems to be the most relevant variable*
+```
+
+```{r include=FALSE}
+#'*compare q1s q1w and q3s q3w*
+#'
+
+```
+
+```{r include=FALSE}
+e2.googleq1= glm(used_google_q1 ~ assigned_bing, data=datexp, family ="binomial")
+
+e2.plotgoogleq1 = effect_plot(e2.googleq1, pred = "assigned_bing", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+e2.plotgoogleq1 = e2.plotgoogleq1 + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+
+e2.googleq5= glm(used_google_q5 ~ assigned_bing, data=datexp, family ="binomial")
+
+e2.plotgoogleq5 = effect_plot(e2.googleq5, pred = "assigned_bing", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+e2.plotgoogleq5 = e2.plotgoogleq5 + theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+
+e2.plotgoogleq5
+
+```
+
+```{r include=FALSE}
+#'* Second experiment*
+lm(data = datexp, used_bing_q1 ~ assigned_bing)
+
+e2.test = lm(data = datexp, used_bing_q1 ~ assigned_bing:bing_prior + bing_qual)
+summary(e2.test) #there is an interaction effect. Prior use moderates the effect of the default
+
+e2.bingq1 = glm(data = datexp, used_bing_q1 ~ assigned_bing + bing_prior, family = "binomial")
+
+summary(e2.bingq1)
+
+#'*visualization*
+# E2. Bing Q1
+e2.sqbingq1= glm(used_bing_q1 ~ assigned_bing, data=datexp, family ="binomial")
+
+e2.plotbingq1 = effect_plot(e2.sqbingq1, pred = "assigned_bing", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+e2.plotbingq1 = e2.plotbingq1 + 
+  theme_Publication() + 
+  theme(text = element_text(family = "LM Roman 10"))
+
+e2.sqbingq5= glm(used_bing_q5 ~ assigned_bing, data=datexp, family ="binomial")
+
+e2.plotbingq5 = effect_plot(e2.sqbingq5, pred = "assigned_bing", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+e2.plotbingq5 = e2.plotbingq5 +
+  theme_Publication() + 
+  theme(text = element_text(family = "LM Roman 10"))
+```
+
+```{r Bing1v5, echo=FALSE, fig.align="center", fig.cap="Status Quo Bing and Google Q1 and Q5", message=FALSE, warning=FALSE, out.width='0.75\\textwidth'}
+plotexp2 = e2.plotbingq1 + e2.plotbingq5 + e2.plotgoogleq1 + e2.plotgoogleq5
+
+plotexp2
+```
+
+```{r}
+ggsave(plot = plotexp2, device = cairo_pdf, filename = "plotexp2.pdf", height = 6, width = 8)
+```
+
+# Second Experiment. Bing Q1 and Q5. Conditional Logit
+```{r}
+library(survival)
+
+temp1 = datexp %>% 
+  filter(assigned_bing==1) %>% 
+  select(used_bing_q1, prolific_id) %>% 
+  mutate(q5=0) %>% 
+  rename(used_bing = used_bing_q1)
+
+
+temp2 = datexp %>% 
+  filter(assigned_bing==1) %>% 
+  select(used_bing_q5, prolific_id) %>% 
+  mutate(q5=1) %>% 
+  rename(used_bing = used_bing_q5)
+
+dat.logit.b = rbind(temp1, temp2)
+
+clogit.b <- clogit(used_bing ~ q5 + strata(prolific_id),
+                  data = dat.logit.b)
+
+summary(clogit.b)
+```
+
+
+```{r GoogBD1v5, echo=FALSE, fig.align="center", fig.cap="Use of Google When Bing is the Default Q1 and Q5", message=FALSE, warning=FALSE, out.width='0.75\\textwidth'}
+#e2.plotgoogleq1 + e2.plotgoogleq5
+```
+
+```{r include=FALSE}
+mcnemar.test(table(datexp$used_bing_q1, datexp$used_bing_q5)) 
+```
+
+```{r Sqsearchb, echo=FALSE, fig.align="center", fig.cap="Search Engine Use. default vs. Other as Default", message=FALSE, warning=FALSE, out.width='0.65\\textwidth'}
+seplotlistb = ggarrange(plotbingq1b, plotddgq1b, plotgq1b, plotbingq3b, plotddgq3b, plotgq3b, ncol = 3, nrow = 2) 
+
+seplotlistb
+```
+
+```{r Plotwb, include=FALSE}
+seplotlistwb = ggarrange(plotwcq1b, plotawq1b, plotwuq1b, plotwcq3b, plotawq3b, plotwuq3b, ncol = 3, nrow = 2) 
+
+seplotlistwb
+```
+
+```{r video, include=FALSE}
+# Creates status quo variable (for Q1)
+datexp = datexp %>% 
+  mutate(statquo = ifelse(assigned_bing ==1 & used_bing_q1==1 | assigned_google ==1 & used_google_q1==1, 1,0),
+         video = as.factor(video))
+
+mean(datexp$statquo)
+
+datbing = datexp %>% 
+  filter(assigned_bing==1) # New DF to compare just those assigned to Bing
+
+glmvideo = glm(data=datexp, formula=statquo ~ video, family = "binomial")
+
+summary(glmvideo)
+
+
+
+glm.video = effect_plot(glmvideo, pred = "video", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+glm.video
+
+```
+
+
+
+Substantial effect! lowers use of Google!
+
+## Prior Use of an Application Makes Default Effects More Likely
+
+There si something wrong with the default data set. Showing NAs in assigned to a
+
+```{r include=FALSE}
+dfexp_def_s = dfexp_def_s %>% 
+  mutate(statquo_sq1 = ifelse(assigned_bing==1 & used_bing_q1==1 | assigned_google==1 & used_google_q1==1 | assigned_duckduckgo==1 & used_duckduckgo_q1==1 | assigned_yahoo==1 & used_yahoo_q1==1, 1, 0),
+         statquo_sq3= ifelse(assigned_bing==1 & used_bing_q3==1 | assigned_google==1 & used_google_q3==1|assigned_duckduckgo==1 & used_duckduckgo_q3==1 | assigned_yahoo==1 & used_yahoo_q3==1, 1, 0),
+         prior_use = ifelse(assigned_google==1 & google_prior==1 | assigned_bing==1 & bing_prior==1 | assigned_duckduckgo==1 & ddg_pior==1 | assigned_yahoo==1 & yahoo_prior==1,1,0),
+         explor_sq1 = ifelse(str_length(se_beatles)>1, 1,0),
+         age = 2023 - as.numeric(q32),
+         age_c = case_when(age<30 ~ "18-29",
+                           age >29 & age <40 ~ "30-39",
+                           age >39 & age <50 ~ "40-49",
+                           age>49 & age <60 ~ "50-59",
+                           age>59 ~ "60 +"))
+
+
+lm(data=dfexp_def_s, formula= statquo_sq1 ~  prior_use) 
+
+lm(data=dfexp_def_s, formula= statquo_sq1 ~ prior_use + age_c)
+
+```
+
+
+
+Data defaults without Google
+
+```{r include=FALSE}
+dfexp_def_s2 = dfexp_def_s %>% 
+  filter(assigned_google==0)
+```
+
+```{r include=FALSE}
+lm(data=dfexp_def_s2, formula= statquo_sq1 ~ explor_sq1 + prior_use)
+
+glmsqs1 = glm(data=dfexp_def_s2, formula= statquo_sq1 ~ prior_use, family = "binomial")
+
+glmsqs2 = glm(data=dfexp_def_s2, formula= statquo_sq1 ~ prior_use + age_c, family = "binomial")
+
+glmsqs3 = glm(data=dfexp_def_s2, formula= statquo_sq1 ~ prior_use + age_c + computer_use, family = "binomial")
+
+glmsqs4 = glm(data=dfexp_def_s2, formula= statquo_sq3 ~ prior_use, family = "binomial")
+
+glmsqs5 = glm(data=dfexp_def_s2, formula= statquo_sq3 ~ prior_use + age_c, family = "binomial")
+
+glmsqs6 = glm(data=dfexp_def_s2, formula= statquo_sq3 ~ prior_use + age_c + computer_use, family = "binomial")
+
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width='0.6\\textwidth', results='asis'}
+
+stargazer(glmsqs1, glmsqs2, glmsqs3, glmsqs4, glmsqs5, glmsqs6,
+          type = "latex", header = FALSE, title = "Status Quo, Prior Use, Computer Use, and Age", 
+          font.size = "small", 
+          float.env = "sidewaystable",
+          label = "tab:sq", 
+          column.sep.width = "3pt") # to reduce column width)
+
+```
+
+\
+Interesting coefficients, qualitatively. Now, run glm because p\>1
+
+```{r include=FALSE}
+mean(dfexp_def_s$statquo_sq1) 
+```
+
+## Status Quo With Exclusivity that Decreases Over Time
+
+The adaptation process described above is also present in the exclusive use of default search engines. Eighty percent of the respondents used the assigned default exclusively in question 1, and 70% in question 3. In the second experiment, roughly 50% of those assigned to Bing by default used it exclusively in question 5. [See what test apply here. Ask Rob].
+
+```{r include=FALSE}
+# Create var for analysis
+
+dfexp_def_s = dfexp_def_s %>% 
+  mutate(se_assigned = case_when(assigned_google==1 ~ "Google",
+                                 assigned_bing==1 ~ "Bing",
+                                 assigned_duckduckgo==1 ~"DuckDuck Go",
+                                 assigned_yahoo==1 ~ "Yahoo"))
+
+dfexp_def_s$statquo_sq1
+```
+
+# analysis glm1: diff status quo depending on preferences in forced choice condition
+
+```{r}
+library(modelsummary)
+
+glm.search = glm(data = dfexp_def_s, formula = statquo_sq1 ~ se_assigned)
+
+modelsummary(glm.search, exponentiate = T, stars = T, estimate = 'conf.int')
+```
+
+# Difference q1 and q3
+
+```{r}
+mcnemar.test(dfexp_def_s$used_bing_q1, dfexp_def_s$used_bing_q3)
+
+mcnemar.test(dfexp_def_s$used_duckduckgo_q1, dfexp_def_s$used_duckduckgo_q3)
+
+mcnemar.test(dfexp_def_s$used_yahoo_q1, dfexp_def_s$used_yahoo_q3)
+```
+
+```{r}
+mcnemar.test(dfexp_def_s$statquo_sq1, dfexp_def_s$statquo_sq3)
+```
+
+```{r}
+temp1 = dfexp_def_s %>% 
+  select(statquo_sq1, prolific_id) %>% 
+  rename(stat_quo = statquo_sq1) %>% 
+  mutate(q3=0, q1=1)
+
+temp2 = dfexp_def_s %>% 
+  select(statquo_sq3, prolific_id) %>% 
+   rename(stat_quo = statquo_sq3) %>% 
+  mutate(q3=1, q1=0)
+
+dfsq1v3s = rbind(temp1, temp2)
+```
+
+```{r}
+library(survival)
+
+clogit1 <- clogit(stat_quo ~ q3 + strata(prolific_id),
+                  data = dfsq1v3s)
+
+clogit2 <- clogit(stat_quo ~ q1 + strata(prolific_id),
+                  data = dfsq1v3s)
+
+summary(clogit2)
+```
+Check quality differences
+```{r}
+dfchoice.s = dfexp %>% 
+  filter(forced_choice_s==1)
+
+typeof(dfchoice.s$qua)
+
+dfchoice.s %>% 
+  summarise(G = mean(google_qual),
+            B = mean(bing_qual),
+            Y = mean(yahoo_qual),
+            DDG = mean(ddg_qual))
+```
+
+quality! Acknowledge post-treatment issue, but the relevant variable is prior updated after seeing interface. Indexes are the same; not usability is the only difference. Maybe the updated quality is the right stat to report!
+
+
+
+```{r include=FALSE}
+
+#'*Code below irrelevant. q1 only one person used more than one*???
+# glm_just_one= glm(just_one_sq1 ~ se_assigned, data=dfexp_def_s, family ="binomial")
+# 
+# plot_just_one_sq1 = effect_plot(glm_just_one, pred = "se_assigned", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+# 
+# plot_just_one_sq1
+
+table(dfexp_def_s$se_assigned, dfexp_def_s$just_one_sq1)
+
+table(dfexp_def_s$se_assigned, dfexp_def_s$just_one_sq2)
+
+table(dfexp_def_s$se_assigned, dfexp_def_s$just_one_sq3)
+
+mean(dfexp_def_s$just_one_sq3)
+
+#'*Code above is not what I need. The relevant variable is stat_quo_qi x just_one_qi*
+```
+
+```{r include=FALSE}
+dfexp_def_s = dfexp_def_s %>% 
+  mutate(just_default_sq1 = ifelse(statquo_sq1==1 & just_one_sq1==1,1,0),
+         just_default_sq3 = ifelse(statquo_sq3==1 & just_one_sq3==1,1,0))
+
+mean(dfexp_def_s$just_default_sq1)
+```
+
+```{r include=FALSE}
+tabseq1 = table(dfexp_def_s$se_assigned, dfexp_def_s$just_default_sq1)
+
+tabseq3=table(dfexp_def_s$se_assigned, dfexp_def_s$just_default_sq3)
+```
+
+```{r tabexclusiveq1, echo=FALSE}
+library(kableExtra)
+
+
+tabseq1 %>% 
+  knitr::kable(
+    format = "latex",
+    caption = "Exclusive Use of Default Q1",
+    align = "c",
+    booktabs = TRUE,
+    longtable = TRUE,
+    linesep = "",
+    ) %>%
+  kableExtra::kable_styling(
+      position = "center",
+      latex_options = c( "repeat_header")
+    )
+```
+
+```{r tabexclusiveq3, echo=FALSE}
+
+
+tabseq3 %>% 
+  knitr::kable(
+    format = "latex",
+    caption = "Exclusive Use of Default Q3",
+    align = "c",
+    booktabs = TRUE,
+    longtable = TRUE,
+    linesep = "",
+    ) %>%
+  kableExtra::kable_styling(
+      position = "center",
+      latex_options = c("repeat_header")
+    )
+```
+
+### Now with the second experiment
+
+```{r include=FALSE}
+datexp = datexp %>% 
+  mutate(se_assigned = case_when(assigned_google==1 ~ "Google",
+                                 assigned_bing==1 ~ "Bing"),
+         statquo_sq1 = ifelse(assigned_bing==1 & used_bing_q1==1 | assigned_google==1 & used_google_q1==1, 1, 0),
+         statquo_sq2 = ifelse(assigned_bing==1 & used_bing_q2==1 | assigned_google==1 & used_google_q2==1, 1, 0),
+         statquo_sq3= ifelse(assigned_bing==1 & used_bing_q3==1 | assigned_google==1 & used_google_q3==1, 1, 0),
+         statquo_sq4 = ifelse(assigned_bing==1 & used_bing_q4==1 | assigned_google==1 & used_google_q4==1, 1, 0),
+         statquo_sq5 = ifelse(assigned_bing==1 & used_bing_q5==1 | assigned_google==1 & used_google_q5==1, 1, 0),
+         prior_use = ifelse(assigned_google==1 & google_prior==1 | assigned_bing==1 & bing_prior==1,1,0),
+         just_default_sq1 = ifelse(statquo_sq1==1 & just_one_sq1==1,1,0),
+         just_default_sq2 = ifelse(statquo_sq2==1 & just_one_sq3==1,1,0),
+         just_default_sq3 = ifelse(statquo_sq3==1 & just_one_sq3==1,1,0),
+         just_default_sq4 = ifelse(statquo_sq4==1 & just_one_sq3==1,1,0),
+         just_default_sq5 = ifelse(statquo_sq5==1 & just_one_sq3==1,1,0))
+```
+
+```{r include=FALSE}
+table(datexp$se_assigned, datexp$just_default_sq1)
+
+table(datexp$se_assigned, datexp$just_default_sq2)
+
+table(datexp$se_assigned, datexp$just_default_sq3)
+
+table(datexp$se_assigned, datexp$just_default_sq4)
+
+table(datexp$se_assigned, datexp$just_default_sq5)
+```
+
+```{r echo=FALSE, warning=FALSE}
+tabbingq5 = table(datexp$se_assigned, datexp$just_default_sq5)
+
+#kable(tabbingq5, caption = "Exclusive Use of Default Q5")
+
+
+tabbingq5 %>% 
+  knitr::kable(
+    format = "latex",
+    caption = "Exclusive Use of Default Q5",
+    align = "c",
+    booktabs = TRUE,
+    longtable = TRUE,
+    linesep = "",
+    ) %>%
+  kableExtra::kable_styling(
+      position = "center",
+      latex_options = c("repeat_header")
+    )
+
+
+```
+
+Interesting result. Fewer people tend to use Bing exclusively over time. Assigned to Bing tended to use both. Not the same for Google.
+
+## Prior use is a substantial moderator of default effects
+
+```{r}
+mean(dfexp_def_s$just_default_sq1)
+
+mean(dfexp_def_s$just_default_sq3)
+
+
+```
+
+```{r}
+mean(datexp$just_default_sq1)
+
+
+mean(datexp$just_default_sq5)
+
+datexp %>% 
+  filter(assigned_bing==1) %>% 
+  summarise(sq = mean(just_default_sq5))
+```
+
+
+```{r}
+#'*now check if those assigned to Bing that did not explore stuck to a mistmatch*
+#'
+typeof(dfexp$google_qual)
+
+datexp$gbetter = as.numeric(ifelse(datexp$google_qual > datexp$bing_qual, 1, 0))
+
+mean(as.numeric(datexp$gbetter), na.rm = TRUE) #'*there are NAs!; and maybe this is causing the issues with the conditional logistic regression*
+
+dat_stuckbingq1 = datexp %>% 
+  filter(assigned_bing==1,
+         just_default_sq1==1) %>% 
+  mutate(mismatch = gbetter)
+
+dat_stuckbingq5 = datexp %>% 
+  filter(assigned_bing==1,
+         just_default_sq5==1) %>% 
+  mutate(mismatch = gbetter)
+
+
+table(datexp$gbetter)
+
+
+mean(dat_stuckbingq1$mismatch, na.rm = T)
+
+mean(dat_stuckbingq5$mismatch, na.rm = T)
+
+table(dat_stuckbingq5$mismatch)
+```
+
+# Status Quo Leads to Mismatches
+
+By question 5, 72 respondents assigned to Bing by default stuck to it and used it exclusively. Out of the 72, 56 (78%) ranked Bing worse than Google, meaning that they stuck to a default they did not prefer.
+
+```{r eval=FALSE, include=FALSE}
+#datexp7 = datexp %>% 
+#   na.omit()
+# 
+# dfexp_filtered = dfexp %>% 
+#   select(-c(start_date:ip_address),
+#          -c(recorded_date:user_language),
+#          -(ends_with("click")),
+#          -(ends_with("count")),
+#          -(ends_with("questions")),
+#          -c(q38, rid, gc, q41_page_submit))
+```
+
+```{r include=FALSE}
+#'*do the same for weather applications. Hypothesis: adjustment when people have a preference*
+
+
+
+```
+
+# Results Weather Apps
+
+```{r include=FALSE}
+
+dfwadef = dfwadef %>% 
+  mutate(sq.q1w = ifelse(assigned_wc==1 & used_wc_q1==1 |
+                           assigned_aw==1 & used_aw_q1==1 |
+                           assigned_wu==1 & used_wu_q1==1,1,0),
+         sq.q2w = ifelse(assigned_wc==1 & used_wc_q2==1 |
+                           assigned_aw==1 & used_aw_q2==1 |
+                           assigned_wu==1 & used_wu_q2==1,1,0),
+         sq.q3w = ifelse(assigned_wc==1 & used_wc_q3==1 |
+                           assigned_aw==1 & used_aw_q3==1 |
+                           assigned_wu==1 & used_wu_q3==1,1,0),
+         just_one_sq1w = ifelse(str_length(app_austin)==1,1,0),
+         just_one_sq2w = ifelse(str_length(app_cambridge)==1,1,0),
+         just_one_sq3w = ifelse(str_length(app_cupertino)==1,1,0),
+         just_default_wq1 = ifelse(sq.q1w==1 & just_one_sq1w==1,1,0),
+         just_default_wq2 = ifelse(sq.q2w==1 & just_one_sq2w==1,1,0),
+         just_default_wq3 = ifelse(sq.q3w==1 & just_one_sq3w==1,1,0))
+
+
+
+mean(dfwadef$just_default_wq1)
+
+table(dfwadef$just_default_wq1)
+
+mean(dfwadef$just_default_wq3)
+
+table(dfwadef$just_default_wq3)
+
+mean(dfexp_def_s$just_default_sq1)
+
+mean(dfexp_def_s$just_default_sq3)
+
+mcnemar.test(table(dfwadef$just_default_wq1, dfwadef$just_default_wq3)) #p=0.02 there is exploration too
+
+```
+
+```{r include=FALSE}
+dfexp_def_s$search = 1
+
+dfwadef$search = 0
+```
+
+```{r include=FALSE}
+dfs = dfexp_def_s %>% 
+  select(just_default_sq1, just_default_sq3, search) %>% 
+  rename(just_default_q1 = just_default_sq1,
+         just_default_q3 = just_default_sq3)
+
+dfwadef$just_default_wq1
+
+dfw = dfwadef %>% 
+  select(just_default_wq1, just_default_wq3, search) %>% 
+     rename(just_default_q1 = just_default_wq1,
+         just_default_q3 = just_default_wq3)
+
+df_svw = rbind(dfs, dfw)
+
+lm(formula = just_default_q1 ~ search, data = df_svw)
+
+lm(formula = just_default_q3 ~ search, data = df_svw)
+
+wvs=glm(formula = just_default_q3 ~ search, data = df_svw, family = "binomial")
+
+summary(wvs) #'*no statistically significant; but there is a trend. Probably I would find a result with more questions and a larger sample size*
+
+```
+
+```{r include=FALSE}
+#'*compare q1w q1s q3w q3s. PENDING. TBD!!!* 
+
+mean(dfexp_def_s$just_default_sq1)
+
+mean(dfexp_def_s$just_default_sq3)
+
+
+
+mean(dfwadef$just_default_wq1)
+
+mean(dfwadef$just_default_wq3)
+
+#chisq.test(dfexp_def_s$just_default_sq1, dfwadef$just_default_wq1)
+```
+
+```{r include=FALSE}
+dfmcnemarw = dfwadef %>% 
+  select(prolific_id, just_default_wq1, just_default_wq3) %>% 
+  rename(q1 = just_default_wq1,
+         q3 = just_default_wq3) %>% 
+  as.data.frame()
+
+
+dfmcnemars = dfexp_def_s %>% 
+  select(prolific_id, just_default_sq1, just_default_sq3) %>% 
+  rename(q1 = just_default_sq1,
+         q3 = just_default_sq3) %>% 
+  as.data.frame()
+
+dfmcnemarwlong = pivot_longer(dfmcnemarw, cols = c(q1, q3), values_to = "just_default", names_to = "Qw") %>% 
+  as.data.frame()
+
+dfmcnemarslong = pivot_longer(dfmcnemars, cols = c(q1, q3), values_to = "just_default", names_to = "Qs") %>% 
+  as.data.frame()
+
+glms1=glm(data = dfmcnemarslong, just_default ~ Qs, family = "binomial")
+
+summary(glms1)
+
+glmw1=glm(data = dfmcnemarwlong, just_default ~ Qw, family = "binomial")
+
+summary(glmw1)
+
+```
+
+```{r include=FALSE}
+library(ggstatsplot)
+
+```
+
+```{r include=FALSE}
+
+#I'll have to review this
+ggbarstats(
+  data = dfwadef,
+  x    = just_default_wq1, 
+  y    = just_default_wq3,
+  paired = TRUE, 
+  label = "both"
+)
+```
+
+```{r include=FALSE}
+
+#'*check at this, the survival package and the analysis because the results changed a lot when using "approximate"*
+#' 
+#' testlm1=lm(data=dfmcnemarslong, just_default ~ Qs)
+#' 
+#' summary(testlm1)
+#' 
+#' testlm2=lm(data=dfmcnemarwlong, just_default ~ Qw)
+#' 
+#' summary(testlm2)
+#' 
+#' testglm1=glm(data=dfmcnemarslong, just_default ~ Qs, family = "binomial")
+#' 
+#' testglm2=glm(data=dfmcnemarwlong, just_default ~ Qw, family = "binomial")
+#' 
+#' summary(testglm1)
+#' 
+#' summary(testglm2)
+#' 
+#' summary(survival.clogitw)
+#' 
+#' library(survival)
+#' 
+#' survival.clogitw <- clogit(formula = just_default ~ Qw + strata(prolific_id), data = dfmcnemarwlong, method = "approximate")
+#' 
+#' 
+#' summary(survival.clogitw) 
+#' 
+#' #'*big differences if "exact" or "aaproximation". Check this*
+#' 
+#' survival.clogits = clogit(formula = just_default ~ Qs + strata(prolific_id), data = dfmcnemarslong, method = "approximate")
+#' 
+#' summary(survival.clogits)
+#' 
+#' #'*Does not make sense! positive exp(coeficient) *
+#' #'
+#' logit2prob = function(logit) {
+#'   exp(logit)/(1+exp(logit))
+#' }
+#' 
+#' logit2prob(-1.3218)
+#' 
+#' logit2prob(-0.3727) # this is the glm coefficient
+#' 
+#' OR = exp(-0.3727)
+
+```
+
+```{r include=FALSE}
+
+# survival.clogits <- clogit(formula = just_default ~ Qs + strata(prolific_id), data = dfmcnemarslong, method = "efron")
+# 
+# dfmcnemarslong
+# 
+# summary(survival.clogits)
+```
+
+```{r include=FALSE}
+library(rstatix)
+
+pairwise_mcnemar_test(
+  data=dfmcnemarslong,
+  formula=just_default ~ Qs |prolific_id,
+  type = c("mcnemar", "exact"),
+  correct = TRUE,
+  p.adjust.method = "bonferroni"
+)
+```
+
+```{r include=FALSE}
+dfaw = dfexp2 %>% 
+  filter(forced_choice_w==1| assigned_aw==1) 
+  
+```
+
+One plot for sq q1 for each (a1_q1, a2_q1, a3_q1)
+
+Another for sq q3 for each (a1_q3, a2_q3, a3_q3)
+
+```{r include=FALSE}
+
+# Convert vars for analysis
+
+test = dfexp2 %>% 
+  mutate(across(starts_with("used"), as.numeric)) 
+
+#' *This worked!!! Saves a lot of time. Mind I should use "across" much more. And apply, lapply, sapply too.*
+
+test = test %>% 
+  mutate(nbing = used_bing_q1 + used_bing_q2 + used_bing_q3) # This works too!
+
+
+```
+
+```{r}
+
+```
+
+Effect_plot to show correlations browsers/s.engines controlling for changes in OSX market shares
+
+# Appendix
+
+```{r, echo=FALSE, results='asis'}
+
+sumtable(data= dfbal, group = 'choice_search', group.test = T, out = "latex")
+```
+
+```{r, echo=FALSE, results='asis'}
+
+sumtable(data= datbal, group = 'Bing_default', group.test = T, out = "latex")
+
+```

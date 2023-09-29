@@ -1,0 +1,636 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  11pt,
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+\setlength\parindent{24pt}
+\usepackage{float}
+\usepackage{flafter}
+\usepackage{pdflscape}
+\usepackage{rotating}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Experiment Status Quo Applications},
+  pdfauthor={Omar Vasquez Duque},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Experiment Status Quo Applications}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Analysis July 19}
+\author{Omar Vasquez Duque}
+\date{}
+
+\begin{document}
+\maketitle
+
+\hypertarget{method}{%
+\section{Method}\label{method}}
+
+\hypertarget{experimental-design}{%
+\subsection{Experimental Design}\label{experimental-design}}
+
+The data come from two experiments the author ran on Prolific between July 13 and July 14, 2023. Both were trivia games in which the participants had to look for the answers to either 6 or 5 questions (available in the Appendix). The respondents were incentivized to find the correct answers. The regular compensation was \$1 for a 6-minute task. Every participant that found the 5 or 6 correct answers doubled her compensation to \$2. In the first experiment, half of the questions were about popular culture and the other half about weather forecasts. This design intended to compare possible status quo effects in search with those of weather applications, assuming people would have a stronger preference in the case of search engines. The second experiment focused solely on search, intending to measure the exclusive use of the default over the 5-question period.
+
+There were two experimental conditions in the first study: (i) a \emph{forced-choice condition}, in which each participant chose a search engine and/or a weather application to play the trivia game, and (ii) a \emph{default condition}, in which each participant was assigned to a search engine and/or weather application by default. The possible defaults were Google, Bing, Yahoo, and DuckDuck Go for search; and the Weather Channel, AccuWeather, and WeatherUnderground for weather forecasts.\footnote{For search, there was an equal probability of being assigned to the forced choice or default condition. In the weather applications part, a 25\% chance of either having to choose an app, and a 25\% of being assigned to one of the three defaults. The difference is because the author did not have a strong prior about status quo effects in weather applications.} In the second experiment, there was only a default condition with two possible options: Bing and Google.
+
+In the first study, each participant was randomly assigned to one of the conditions in each part (i.e.~search and weather forecasts). This means each participant could have been assigned to the forced choice condition in the first half of the study and then to a default condition in the second one. The second study focused solely on search. Thus, the five questions presented there were about popular culture.\footnote{In this new study, the author included an additional manipulation that did not affect the outcomes. Said failed manipulation was the addition of a video the participants had to watch right before seeing the first question, which intended to manipulate people's attention.} In both studies, the participants read a multiple choice question, chose one of the possible answers, and then immediately reported what application(s) they had used to find the answer.
+
+\hypertarget{sample}{%
+\subsection{Sample}\label{sample}}
+
+Prolific recruited 344 people to participate in the first experiment, and 416 in the second one. After filtering the responses of those who did not pass attention checks, did not complete the questionnaire, and responded either 50\% below or 175\% above the median completion time, the final sample sample sizes lower to 257 and 319 for the first and second experiments, respectively. The only two restrictions that applied to the participant poll were that they needed to reside in the U.S. and be fluent in English. Both samples were highly educated. Most of the respondents had a college degree. The mean age of the participants was 38 in the first experiment and 42 in the second one. Almost half of the participants identified as female. Slightly below 5\% of the samples identified as non-binary or preferred not to disclose their gender. The Appendix contains two tables displaying descriptive statistics of each sample and performing a balance test among the experimental conditions, which were strongly balanced.
+
+\hypertarget{results}{%
+\section{Results}\label{results}}
+
+\hypertarget{most-of-the-participants-clearly-preferred-the-dominant-search-engine-but-the-preferences-for-weather-applications-were-divided}{%
+\subsection{Most of the participants clearly preferred the dominant search engine but the preferences for weather applications were divided}\label{most-of-the-participants-clearly-preferred-the-dominant-search-engine-but-the-preferences-for-weather-applications-were-divided}}
+
+Figure \ref{fig:preferences} below shows the participants' preferences when forced to choose the apps they wanted to use to participate in the study. This is the normative benchmark that rules out any potential exploitation of the users' inertia. In search, Google's dominance was clear. Eighty nine percent of the participants chose it. DuckDuck Go ranked second with 8\% of the users' preferences, followed by Bing with 4\% of the choices. No participant chose Yahoo. In contrast, the respondents' preferences for weather apps were much more balanced. The Weather Channel ranks first with 55\% of the choices, AccuWeather followed it with 35\%, and Weather Underground ranked last with roughly 10\% of the preferences.
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.7\textwidth]{Results-July25_files/figure-latex/preferences-1} 
+
+}
+
+\caption{Preferences for Search Engines and Weather Apps}\label{fig:preferences}
+\end{figure}
+
+\hypertarget{strong-immediate-status-quo-effects-in-search-and-weather-applications}{%
+\subsection{Strong immediate status quo effects in search and weather applications}\label{strong-immediate-status-quo-effects-in-search-and-weather-applications}}
+
+A status quo effect refers to the disparity in market share that an application would possess when it is set as the user's default option, as opposed to when the user is compelled to make a choice. This is formally represented as \(Pa_i|D_i - Pa_i|C\), where \(Pa_i|D_i\) is the probability of choosing application \(a\) when it is the default, and \(Pa_i|C\) is the probability of choosing the same application when its potential users are forced to choose.
+
+The statistical analysis of this section appraises status quo effects benefiting Bing, DuckDuckGo, the Weather Channel, AccuWeather, and Weather Underground. Yahoo's case is then reported with a mere frequency table. Since no participant chose Yahoo in the forced choice condition, no statistical analysis involving Yahoo is possible. {[}check if this is true{]} expected -observed. Check chi-squared. Does it run? check formula.
+
+As just noted, most of the respondents in the forced choice condition chose Google. Only a few chose Bing (4\%), and 8\% chose DuckDuck Go. However, when the participants were assigned to any rival of Google by default, a very substantial part of the respondents used the default, and not only in the first question but also in the third one. Ninety percent of those assigned to DuckDuck Go used it in question 1, compared to 80\% of those assigned to Bing, and 60\% of those assigned to Yahoo. The effect lowered by roughly 10\% in question 3. The following plots show the operationalization of status quo effects with forced choice as the benchmark. Google is the only search engine that does not directly benefit from its default position. This is because its share of preferences does not change substantially when it is people's default and when users are forced to choose.
+
+The weather application data show a similar effect. Figure \ref{fig:Sqweather} displays that the three applications show a much higher use rate when they are assigned as people's default than when people are forced to choose. Weather Underground was the least sticky default. Fewer people stuck to it in question 1, and more switched to another application by question 3.
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.75\textwidth]{Results-July25_files/figure-latex/Sqsearch-1} 
+
+}
+
+\caption{Status Quo Search Engines}\label{fig:Sqsearch}
+\end{figure}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.75\textwidth]{Results-July25_files/figure-latex/Sqweather-1} 
+
+}
+
+\caption{Status Quo Weather Apps}\label{fig:Sqweather}
+\end{figure}
+
+\hypertarget{googles-use-goes-down-when-another-search-engine-is-the-users-default}{%
+\subsection{Google's Use Goes Down When Another Search Engine is the Users' Default}\label{googles-use-goes-down-when-another-search-engine-is-the-users-default}}
+
+Google does not benefit from a default effect. However, Google's rivals do. And when a rival of Google increases its use, Google's use goes down. In fact, only roughly 20\% of the participants used Google to find the answer to the first question when assigned to any of Google's rivals by default. However, the number goes up to 32\% in question 3. Figure \ref{fig:Sqsearchb} shows this effect. It also shows that Google was the only option the participants tended to use in addition to their default.
+
+Nonetheless, there is an ``adjustment'' effect. The respondents not assigned to Google by default tended to use Google in the last questions. The second experiment showed that almost half of those assigned to Bing by default used Google in question 5.
+
+\hypertarget{default-affects-peoples-perceptions-about-the-quality-of-bing-and-duckduck-go}{%
+\subsection{Default affects people's perceptions about the quality of Bing and DuckDuck Go}\label{default-affects-peoples-perceptions-about-the-quality-of-bing-and-duckduck-go}}
+
+The default assignment leads people to experiment with alternative search engines they perceived were worse than they thought. This effect is clear for Bing and DuckDuck Go. Yahoo's quality does not change among the experimental conditions. No quality changes show in the weather applications experiment.
+
+\begin{sidewaystable}[!htbp] \centering 
+  \caption{Default's Effect on Perceived Quality} 
+  \label{tab:quals} 
+\small 
+\begin{tabular}{@{\extracolsep{3pt}}lcccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-5} 
+\\[-1.8ex] & bing\_qual & ddg\_qual & yahoo\_qual & google\_qual \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+\hline \\[-1.8ex] 
+ forced\_choice\_s1 & $-$0.804$^{***}$ & $-$0.719$^{***}$ & 0.066 & 0.123 \\ 
+  & (0.225) & (0.224) & (0.220) & (0.105) \\ 
+  & & & & \\ 
+ Constant & 3.573$^{***}$ & 3.495$^{***}$ & 2.581$^{***}$ & 4.418$^{***}$ \\ 
+  & (0.202) & (0.198) & (0.200) & (0.094) \\ 
+  & & & & \\ 
+\hline \\[-1.8ex] 
+Observations & 162 & 168 & 158 & 162 \\ 
+R$^{2}$ & 0.074 & 0.058 & 0.001 & 0.008 \\ 
+Adjusted R$^{2}$ & 0.068 & 0.053 & $-$0.006 & 0.002 \\ 
+Residual Std. Error & 1.127 (df = 160) & 1.205 (df = 166) & 1.041 (df = 156) & 0.526 (df = 160) \\ 
+F Statistic & 12.767$^{***}$ (df = 1; 160) & 10.265$^{***}$ (df = 1; 166) & 0.089 (df = 1; 156) & 1.370 (df = 1; 160) \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{4}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{sidewaystable}
+
+\begin{table}[!htbp] \centering 
+  \caption{Default's Effect on Perceived Quality} 
+  \label{tab:quals2} 
+\small 
+\begin{tabular}{@{\extracolsep{3pt}}lccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{3}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-4} 
+\\[-1.8ex] & wc\_qual & aw\_qual & wu\_qual \\ 
+\\[-1.8ex] & (1) & (2) & (3)\\ 
+\hline \\[-1.8ex] 
+ forced\_choice\_w1 & 0.107 & $-$0.266 & $-$0.206 \\ 
+  & (0.188) & (0.174) & (0.186) \\ 
+  & & & \\ 
+ Constant & 3.828$^{***}$ & 3.980$^{***}$ & 3.530$^{***}$ \\ 
+  & (0.139) & (0.135) & (0.136) \\ 
+  & & & \\ 
+\hline \\[-1.8ex] 
+Observations & 141 & 127 & 143 \\ 
+R$^{2}$ & 0.002 & 0.018 & 0.009 \\ 
+Adjusted R$^{2}$ & $-$0.005 & 0.010 & 0.002 \\ 
+Residual Std. Error & 1.112 (df = 139) & 0.958 (df = 125) & 1.109 (df = 141) \\ 
+F Statistic & 0.323 (df = 1; 139) & 2.333 (df = 1; 125) & 1.222 (df = 1; 141) \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table}
+
+\hypertarget{adjustment-downward-trend-of-default-effects-in-search}{%
+\subsection{``Adjustment'': Downward Trend of Default Effects in Search}\label{adjustment-downward-trend-of-default-effects-in-search}}
+
+DuckDuck Go, Bing and Yahoo exhibited stronger default effects in question 1 than question 3. This was also the Weather Underground's case. This trend motivated the author to run the second experiment, which focused exclusively on search. In this second study there was just a default condition and five questions. The participants were randomly assigned to either Google or Bing by default (with an equal probability). Figure \ref{fig:Bing1v5} shows how Bing's default effect went down from roughly 75\% in question 1 to 50\% in question 5, a difference that is substantially and statistically significant (McNemar's Chi-squared test p \textless{} 0.01).
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.75\textwidth]{Results-July25_files/figure-latex/Bing1v5-1} 
+
+}
+
+\caption{Status Quo Bing and Google Q1 and Q5}\label{fig:Bing1v5}
+\end{figure}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.65\textwidth]{Results-July25_files/figure-latex/Sqsearchb-1} 
+
+}
+
+\caption{Search Engine Use. default vs. Other as Default}\label{fig:Sqsearchb}
+\end{figure}
+
+Substantial effect! lowers use of Google!
+
+\hypertarget{prior-use-of-an-application-makes-default-effects-more-likely}{%
+\subsection{Prior Use of an Application Makes Default Effects More Likely}\label{prior-use-of-an-application-makes-default-effects-more-likely}}
+
+There si something wrong with the default data set. Showing NAs in assigned to a
+
+Data defaults without Google
+
+\begin{sidewaystable}[!htbp] \centering 
+  \caption{Status Quo, Prior Use, Computer Use, and Age} 
+  \label{tab:sq} 
+\small 
+\begin{tabular}{@{\extracolsep{3pt}}lcccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{6}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-7} 
+\\[-1.8ex] & \multicolumn{3}{c}{statquo\_sq1} & \multicolumn{3}{c}{statquo\_sq3} \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4) & (5) & (6)\\ 
+\hline \\[-1.8ex] 
+ prior\_use & 1.650$^{***}$ & 1.549$^{***}$ & 1.703$^{***}$ & 1.248$^{***}$ & 1.316$^{***}$ & 1.558$^{***}$ \\ 
+  & (0.543) & (0.571) & (0.614) & (0.457) & (0.495) & (0.555) \\ 
+  & & & & & & \\ 
+ age\_c30-39 &  & $-$0.631 & $-$0.526 &  & $-$0.386 & $-$0.123 \\ 
+  &  & (0.668) & (0.728) &  & (0.595) & (0.655) \\ 
+  & & & & & & \\ 
+ age\_c40-49 &  & $-$0.306 & $-$0.305 &  & $-$0.883 & $-$0.826 \\ 
+  &  & (0.952) & (0.964) &  & (0.730) & (0.753) \\ 
+  & & & & & & \\ 
+ age\_c50-59 &  & $-$0.507 & $-$0.467 &  & $-$0.232 & $-$0.026 \\ 
+  &  & (0.792) & (0.835) &  & (0.707) & (0.757) \\ 
+  & & & & & & \\ 
+ age\_c60 + &  & $-$0.406 & 0.226 &  & $-$1.016 & $-$0.592 \\ 
+  &  & (1.316) & (1.465) &  & (1.136) & (1.314) \\ 
+  & & & & & & \\ 
+ computer\_usebetween 4-6 hours/day &  &  & $-$0.768 &  &  & $-$1.439$^{*}$ \\ 
+  &  &  & (0.844) &  &  & (0.764) \\ 
+  & & & & & & \\ 
+ computer\_usebetween 6-8 hours/day &  &  & $-$0.002 &  &  & $-$0.225 \\ 
+  &  &  & (0.903) &  &  & (0.787) \\ 
+  & & & & & & \\ 
+ computer\_usemore than 8 hours/day &  &  & 0.802 &  &  & 0.484 \\ 
+  &  &  & (0.898) &  &  & (0.787) \\ 
+  & & & & & & \\ 
+ computer\_useup to 2 hours/day &  &  & $-$0.622 &  &  & 0.109 \\ 
+  &  &  & (1.579) &  &  & (1.571) \\ 
+  & & & & & & \\ 
+ Constant & 0.470 & 0.882 & 0.780 & 0.051 & 0.358 & 0.415 \\ 
+  & (0.329) & (0.559) & (0.831) & (0.320) & (0.496) & (0.752) \\ 
+  & & & & & & \\ 
+\hline \\[-1.8ex] 
+Observations & 95 & 95 & 95 & 95 & 95 & 95 \\ 
+Log Likelihood & $-$45.053 & $-$44.571 & $-$42.126 & $-$56.116 & $-$55.138 & $-$50.332 \\ 
+Akaike Inf. Crit. & 94.106 & 101.142 & 104.253 & 116.233 & 122.276 & 120.665 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{6}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{sidewaystable}
+
+\hfill\break
+Interesting coefficients, qualitatively. Now, run glm because p\textgreater1
+
+\hypertarget{status-quo-with-exclusivity-that-decreases-over-time}{%
+\subsection{Status Quo With Exclusivity that Decreases Over Time}\label{status-quo-with-exclusivity-that-decreases-over-time}}
+
+The adaptation process described above is also present in the exclusive use of default search engines. Eighty percent of the respondents used the assigned default exclusively in question 1, and 70\% in question 3. In the second experiment, roughly 50\% of those assigned to Bing by default used it exclusively in question 5. {[}See what test apply here. Ask Rob{]}.
+
+\begin{longtable}[t]{lcc}
+\caption{\label{tab:tabexclusiveq1}Exclusive Use of Default Q1}\\
+\toprule
+  & 0 & 1\\
+\midrule
+\endfirsthead
+\caption[]{\label{tab:tabexclusiveq1}Exclusive Use of Default Q1 \textit{(continued)}}\\
+\toprule
+  & 0 & 1\\
+\midrule
+\endhead
+
+\endfoot
+\bottomrule
+\endlastfoot
+Bing & 7 & 24\\
+DuckDuck Go & 4 & 33\\
+Google & 2 & 29\\
+Yahoo & 11 & 16\\*
+\end{longtable}
+
+\begin{longtable}[t]{lcc}
+\caption{\label{tab:tabexclusiveq3}Exclusive Use of Default Q3}\\
+\toprule
+  & 0 & 1\\
+\midrule
+\endfirsthead
+\caption[]{\label{tab:tabexclusiveq3}Exclusive Use of Default Q3 \textit{(continued)}}\\
+\toprule
+  & 0 & 1\\
+\midrule
+\endhead
+
+\endfoot
+\bottomrule
+\endlastfoot
+Bing & 11 & 20\\
+DuckDuck Go & 10 & 27\\
+Google & 2 & 29\\
+Yahoo & 14 & 13\\*
+\end{longtable}
+
+\hypertarget{now-with-the-second-experiment}{%
+\subsubsection{Now with the second experiment}\label{now-with-the-second-experiment}}
+
+\begin{longtable}[t]{lcc}
+\caption{\label{tab:unnamed-chunk-40}Exclusive Use of Default Q5}\\
+\toprule
+  & 0 & 1\\
+\midrule
+\endfirsthead
+\caption[]{\label{tab:unnamed-chunk-40}Exclusive Use of Default Q5 \textit{(continued)}}\\
+\toprule
+  & 0 & 1\\
+\midrule
+\endhead
+
+\endfoot
+\bottomrule
+\endlastfoot
+Bing & 84 & 73\\
+Google & 18 & 144\\*
+\end{longtable}
+
+Interesting result. Fewer people tend to use Bing exclusively over time. Assigned to Bing tended to use both. Not the same for Google.
+
+\hypertarget{prior-use-is-a-substantial-moderator-of-default-effects}{%
+\subsection{Prior use is a substantial moderator of default effects}\label{prior-use-is-a-substantial-moderator-of-default-effects}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{mean}\NormalTok{(dfexp\_def\_s}\SpecialCharTok{$}\NormalTok{just\_default\_sq1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.8095238
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{mean}\NormalTok{(dfexp\_def\_s}\SpecialCharTok{$}\NormalTok{just\_default\_sq3)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.7063492
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#\textquotesingle{}*now check if those assigned to Bing that did not explore stuck to a mistmatch*}
+\CommentTok{\#\textquotesingle{}}
+\FunctionTok{typeof}\NormalTok{(dfexp}\SpecialCharTok{$}\NormalTok{google\_qual)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "double"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{datexp}\SpecialCharTok{$}\NormalTok{gbetter }\OtherTok{=} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{ifelse}\NormalTok{(datexp}\SpecialCharTok{$}\NormalTok{google\_qual }\SpecialCharTok{\textgreater{}}\NormalTok{ datexp}\SpecialCharTok{$}\NormalTok{bing\_qual, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{))}
+
+\FunctionTok{mean}\NormalTok{(}\FunctionTok{as.numeric}\NormalTok{(datexp}\SpecialCharTok{$}\NormalTok{gbetter), }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{) }\CommentTok{\#\textquotesingle{}*there are NAs!; and maybe this is causing the issues with the conditional logistic regression*}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.8594249
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat\_stuckbingq1 }\OtherTok{=}\NormalTok{ datexp }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(assigned\_bing}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,}
+\NormalTok{         just\_default\_sq1}\SpecialCharTok{==}\DecValTok{1}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{mismatch =}\NormalTok{ gbetter)}
+
+\NormalTok{dat\_stuckbingq5 }\OtherTok{=}\NormalTok{ datexp }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{filter}\NormalTok{(assigned\_bing}\SpecialCharTok{==}\DecValTok{1}\NormalTok{,}
+\NormalTok{         just\_default\_sq5}\SpecialCharTok{==}\DecValTok{1}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{mismatch =}\NormalTok{ gbetter)}
+
+
+\FunctionTok{table}\NormalTok{(datexp}\SpecialCharTok{$}\NormalTok{gbetter)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##   0   1 
+##  44 269
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{mean}\NormalTok{(dat\_stuckbingq1}\SpecialCharTok{$}\NormalTok{mismatch, }\AttributeTok{na.rm =}\NormalTok{ T)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.8198198
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{mean}\NormalTok{(dat\_stuckbingq5}\SpecialCharTok{$}\NormalTok{mismatch, }\AttributeTok{na.rm =}\NormalTok{ T)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.7777778
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{table}\NormalTok{(dat\_stuckbingq5}\SpecialCharTok{$}\NormalTok{mismatch)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  0  1 
+## 16 56
+\end{verbatim}
+
+\hypertarget{status-quo-leads-to-mismatches}{%
+\section{Status Quo Leads to Mismatches}\label{status-quo-leads-to-mismatches}}
+
+By question 5, 72 respondents assigned to Bing by default stuck to it and used it exclusively. Out of the 72, 56 (78\%) ranked Bing worse than Google, meaning that they stuck to a default they did not prefer.
+
+\hypertarget{results-weather-apps}{%
+\section{Results Weather Apps}\label{results-weather-apps}}
+
+One plot for sq q1 for each (a1\_q1, a2\_q1, a3\_q1)
+
+Another for sq q3 for each (a1\_q3, a2\_q3, a3\_q3)
+
+Effect\_plot to show correlations browsers/s.engines controlling for changes in OSX market shares
+
+\hypertarget{appendix}{%
+\section{Appendix}\label{appendix}}
+
+\begin{table}[!htbp] \centering \renewcommand*{\arraystretch}{1.1}\caption{Summary Statistics}\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrrrrrl}
+\hline
+\hline
+choice\_search & \multicolumn{3}{c}{0} & \multicolumn{3}{c}{1} &   \\ 
+ Variable & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{SD} & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{SD} & \multicolumn{1}{c}{Test} \\ 
+\hline
+age & 126 & 38 & 12 & 131 & 37 & 13 & F$=0.604^{}$ \\ 
+education & 126 &  &  & 131 &  &  & X2$=2.313^{}$ \\ 
+... college degree & 45 & 36\% &  & 57 & 44\% &  &  \\ 
+... graduate degree & 24 & 19\% &  & 19 & 15\% &  &  \\ 
+... high school & 19 & 15\% &  & 20 & 15\% &  &  \\ 
+... some college & 36 & 29\% &  & 34 & 26\% &  &  \\ 
+... some high-school & 2 & 2\% &  & 1 & 1\% &  &  \\ 
+computer\_use & 126 &  &  & 131 &  &  & X2$=5.285^{}$ \\ 
+... between 2-4 hours/day & 24 & 19\% &  & 29 & 22\% &  &  \\ 
+... between 4-6 hours/day & 31 & 25\% &  & 20 & 15\% &  &  \\ 
+... between 6-8 hours/day & 27 & 21\% &  & 30 & 23\% &  &  \\ 
+... more than 8 hours/day & 41 & 33\% &  & 44 & 34\% &  &  \\ 
+... up to 2 hours/day & 3 & 2\% &  & 8 & 6\% &  &  \\ 
+gender & 126 &  &  & 131 &  &  & X2$=1.793^{}$ \\ 
+... female & 57 & 45\% &  & 66 & 50\% &  &  \\ 
+... male & 65 & 52\% &  & 63 & 48\% &  &  \\ 
+... non-binary & 3 & 2\% &  & 2 & 2\% &  &  \\ 
+... prefer not to say & 1 & 1\% &  & 0 & 0\% &  &  \\ 
+ethnicity & 126 &  &  & 131 &  &  & X2$=2.246^{}$ \\ 
+... african american & 13 & 10\% &  & 8 & 6\% &  &  \\ 
+... american indian & 12 & 10\% &  & 12 & 9\% &  &  \\ 
+... asian & 1 & 1\% &  & 1 & 1\% &  &  \\ 
+... hispanic & 10 & 8\% &  & 9 & 7\% &  &  \\ 
+... other & 2 & 2\% &  & 1 & 1\% &  &  \\ 
+... white & 88 & 70\% &  & 100 & 76\% &  & \\ 
+\hline
+\hline
+\multicolumn{8}{l}{Statistical significance markers: * p<0.1; ** p<0.05; *** p<0.01}\\ 
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[!htbp] \centering \renewcommand*{\arraystretch}{1.1}\caption{Summary Statistics}\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrrrrrl}
+\hline
+\hline
+Bing\_default & \multicolumn{3}{c}{0} & \multicolumn{3}{c}{1} &   \\ 
+ Variable & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{SD} & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{SD} & \multicolumn{1}{c}{Test} \\ 
+\hline
+age & 162 & 44 & 14 & 157 & 42 & 15 & F$=1.195^{}$ \\ 
+education & 162 &  &  & 157 &  &  & X2$=3.527^{}$ \\ 
+... college degree & 70 & 43\% &  & 68 & 43\% &  &  \\ 
+... graduate degree & 29 & 18\% &  & 32 & 20\% &  &  \\ 
+... high school & 17 & 10\% &  & 23 & 15\% &  &  \\ 
+... some college & 45 & 28\% &  & 32 & 20\% &  &  \\ 
+... some high-school & 1 & 1\% &  & 2 & 1\% &  &  \\ 
+computer\_use & 162 &  &  & 157 &  &  & X2$=2.036^{}$ \\ 
+... between 2-4 hours/day & 23 & 14\% &  & 30 & 19\% &  &  \\ 
+... between 4-6 hours/day & 38 & 23\% &  & 31 & 20\% &  &  \\ 
+... between 6-8 hours/day & 46 & 28\% &  & 41 & 26\% &  &  \\ 
+... more than 8 hours/day & 42 & 26\% &  & 40 & 25\% &  &  \\ 
+... up to 2 hours/day & 13 & 8\% &  & 15 & 10\% &  &  \\ 
+gender & 162 &  &  & 157 &  &  & X2$=0.793^{}$ \\ 
+... female & 79 & 49\% &  & 72 & 46\% &  &  \\ 
+... male & 76 & 47\% &  & 80 & 51\% &  &  \\ 
+... non-binary & 5 & 3\% &  & 4 & 3\% &  &  \\ 
+... prefer not to say & 2 & 1\% &  & 1 & 1\% &  & \\ 
+\hline
+\hline
+\multicolumn{8}{l}{Statistical significance markers: * p<0.1; ** p<0.05; *** p<0.01}\\ 
+\end{tabular}
+}
+\end{table}
+
+\end{document}

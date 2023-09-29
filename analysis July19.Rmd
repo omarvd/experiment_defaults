@@ -1,0 +1,733 @@
+---
+title: "Experiment Status Quo Applications"
+subtitle: "Analysis July 19"
+author: "Omar Vasquez Duque"
+  
+output:
+  bookdown::pdf_book:
+    dev: cairo_pdf
+    keep_tex:  true
+fontsize: 11pt
+toc: false
+
+header-includes:
+   - \setlength\parindent{24pt}
+   - \usepackage{float}
+   - \usepackage{flafter}
+   - \usepackage{pdflscape}
+   - \usepackage{rotating}
+---
+
+
+```{r include=FALSE}
+library(readr)
+library(janitor)
+library(extrafont)
+library(extrafontdb)
+library(Cairo)
+loadfonts()
+library(tidyverse)
+
+source('Theme_Publication.R')
+
+df <- read_csv("Search+Prolific_July+12,+2023_22.29.csv") # Experiment 1
+
+dat <- read_csv("Search+Prolific+July+13_July+14,+2023_14.23.csv") # Experiment 2
+
+options(scipen=999)
+
+```
+# Data cleaning
+
+First experiment. July 13, 2023. Prolific. Sample of 300 people. Second experiment, July 14, 2023. Sample of 400 people.
+```{r include=FALSE}
+
+# Data cleaning for first and second experiment (df = first, dat = second)
+
+df = df %>% 
+  clean_names() %>% 
+    slice(-c(1,2)) # first two rows repeat var names 
+
+dat = dat %>% 
+  clean_names() %>% 
+    slice(-c(1,2)) # first two rows repeat var names 
+
+```
+
+```{r include=FALSE}
+
+#More cleaning
+
+df = df %>% 
+  filter(consent ==1, #filters out did not consent
+         distribution_channel == "anonymous", # filters out previews
+         q14 == "5", # attention check
+         q15 == "7", # bot check
+         !is.na(app_cupertino)) # filters out incompletes
+
+dat = dat %>% 
+  filter(consent ==1, #filters out did not consent
+         distribution_channel == "anonymous", # filters out previews
+         q14 == "5", # attention check
+         q15 == "7",
+         !is.na(q37))# bot check
+
+```
+
+
+```{r include=FALSE}
+# filter responses too quick and too slow 
+
+df$duration_in_seconds = as.numeric(df$duration_in_seconds) # changes var type
+
+median_completion = median(df$duration_in_seconds) # creates median variable
+
+df2 = df %>% 
+  filter(duration_in_seconds >= 0.5 * median_completion & duration_in_seconds <=1.75*median_completion) # n lowers to 257
+
+dat$duration_in_seconds = as.numeric(dat$duration_in_seconds) # changes var type
+
+median_completion2 = median(dat$duration_in_seconds) # creates median variable
+
+dat2 = dat %>% 
+  filter(duration_in_seconds >= 0.5 * median_completion2 & duration_in_seconds <=1.75*median_completion2) # n does not change
+
+```
+
+```{r include=FALSE}
+# Create treatment vars
+
+df2 = df2 %>% 
+  mutate(choice_search = ifelse(survey_version == "1", 1, 0),
+         default_search = ifelse(survey_version == "2", 1, 0),
+         choice_weather = ifelse(survey_type_weather == "1", 1,0),
+         default_weather = ifelse(survey_type_weather == "2", 1, 0))
+
+
+mean(df2$choice_search) # good balance
+
+mean(df2$default_search) # sanity check. All good
+
+#'* Does not apply to second experiment (only default condition)*
+```
+
+## var creation for analysis 
+
+```{r include=FALSE}
+# Create vars for search experiment
+
+dfexp = df2 %>% 
+  mutate(chose_google = if_else(choice_screen == 1, 1, 0, NULL),
+         chose_duckduckgo = if_else(choice_screen == 2,1,0, NULL),
+         chose_bing = if_else(choice_screen == 3, 1,0, NULL),
+         chose_ecosia = if_else(choice_screen == 4, 1, 0, NULL),
+         chose_yahoo = if_else(choice_screen == 5,1,0, NULL),
+         
+         choice = factor(case_when(chose_google == 1 ~ "Google",
+                            chose_bing == 1 ~ "Bing",
+                            chose_duckduckgo == 1 ~ "DuckDuck Go",
+                            chose_ecosia == 1 ~ "Ecosia",
+                            chose_yahoo == 1 ~ "Yahoo"),
+                         levels = c("Google", 
+                                    "Bing", 
+                                    "DuckDuck Go", 
+                                    "Ecosia", 
+                                    "Yahoo")),
+         
+         assigned_google = ifelse(default_assigned=="1",1,0),
+         assigned_bing = ifelse(default_assigned=="2",1,0),
+         assigned_duckduckgo = ifelse(default_assigned=="4",1,0),
+         assigned_yahoo = ifelse(default_assigned=="3",1,0),
+         
+         used_google_q1 = if_else(grepl("1", se_beatles), 1, 0, NULL),
+         used_duckduckgo_q1 = if_else(grepl("4", se_beatles),1,0,NULL),
+         used_bing_q1 = if_else(grepl("2", se_beatles),1,0,NULL),
+         used_yahoo_q1 = if_else(grepl("3", se_beatles),1,0,NULL),
+         used_other_q1 = if_else(grepl("5", se_beatles),1,0,NULL),
+         
+         used_google_q2 = if_else(grepl("1", se_alcapone), 1, 0, NULL),
+         used_duckduckgo_q2 = if_else(grepl("4", se_alcapone),1,0,NULL),
+         used_bing_q2 = if_else(grepl("2", se_alcapone),1,0,NULL),
+         used_yahoo_q2 = if_else(grepl("3", se_alcapone),1,0,NULL),
+         used_other_q2 = if_else(grepl("5", se_alcapone),1,0,NULL),
+         
+         used_google_q3 = if_else(grepl("1", se_vangogh), 1, 0, NULL),
+         used_duckduckgo_q3 = if_else(grepl("4", se_vangogh),1,0,NULL),
+         used_bing_q3 = if_else(grepl("2", se_vangogh),1,0,NULL),
+         used_yahoo_q3 = if_else(grepl("3", se_vangogh),1,0,NULL),
+         used_other_q3 = if_else(grepl("5", se_vangogh),1,0,NULL),
+         
+         just_one_sq1 = ifelse(str_length(se_beatles)==1, 1,0),
+         just_one_sq2 = ifelse(str_length(se_alcapone)==1, 1,0),
+         just_one_sq3 = ifelse(str_length(se_vangogh)==1, 1,0),
+
+         google_qual = q60_1,
+         bing_qual = q60_2,
+         ddg_qual = q60_3,
+         yahoo_qual = q60_5,
+         
+         google_prior = ifelse(grepl("1", q58), 1, 0),
+         ddg_pior = ifelse(grepl("2", q58),1, 0),
+         bing_prior = ifelse(grepl("3", q58), 1, 0),
+         ecosia_prior = ifelse(grepl("4", q58), 1, 0),
+         yahoo_prior = ifelse(grepl("5", q58), 1, 0),
+         other_prior = ifelse(grepl("6", q58), 1, 0),
+         across(starts_with("assigned"), as.factor), # transform all assign vars to factors
+         across(ends_with("qual"), as.numeric),
+         forced_choice_s = as.factor(choice_search),
+         forced_choice_w = as.factor(choice_weather)) # the same but for numeric )
+         
+     
+```
+
+## var creation second exp
+
+```{r include=FALSE}
+
+# The same for second experiment
+
+datexp = dat2 %>% 
+  mutate(assigned_google = ifelse(fl_12_do == "Google_default",1,0),
+         assigned_bing = ifelse(fl_12_do == "Bing_default",1,0),
+         video = ifelse(fl_90_do == "Video",1,0),
+         
+         used_google_q1 = if_else(grepl("1", se_beatles), 1, 0, NULL),
+         used_duckduckgo_q1 = if_else(grepl("4", se_beatles),1,0,NULL),
+         used_bing_q1 = if_else(grepl("2", se_beatles),1,0,NULL),
+         used_yahoo_q1 = if_else(grepl("3", se_beatles),1,0,NULL),
+         used_other_q1 = if_else(grepl("5", se_beatles),1,0,NULL),
+         
+         used_google_q2 = if_else(grepl("1", se_alcapone), 1, 0, NULL),
+         used_duckduckgo_q2 = if_else(grepl("4", se_alcapone),1,0,NULL),
+         used_bing_q2 = if_else(grepl("2", se_alcapone),1,0,NULL),
+         used_yahoo_q2 = if_else(grepl("3", se_alcapone),1,0,NULL),
+         used_other_q2 = if_else(grepl("5", se_alcapone),1,0,NULL),
+         
+         used_google_q3 = if_else(grepl("1", se_vangogh), 1, 0, NULL),
+         used_duckduckgo_q3 = if_else(grepl("4", se_vangogh),1,0,NULL),
+         used_bing_q3 = if_else(grepl("2", se_vangogh),1,0,NULL),
+         used_yahoo_q3 = if_else(grepl("3", se_vangogh),1,0,NULL),
+         used_other_q3 = if_else(grepl("5", se_vangogh),1,0,NULL),
+         
+         used_google_q4 = if_else(grepl("1", q58_55), 1, 0, NULL),
+         used_duckduckgo_q4 = if_else(grepl("4", q58_55),1,0,NULL),
+         used_bing_q4 = if_else(grepl("2", q58_55),1,0,NULL),
+         used_yahoo_q4 = if_else(grepl("3", q58_55),1,0,NULL),
+         used_other_q4 = if_else(grepl("5", q58_55),1,0,NULL),
+         
+         used_google_q5 = if_else(grepl("1", q60), 1, 0, NULL),
+         used_duckduckgo_q5 = if_else(grepl("4", q60),1,0,NULL),
+         used_bing_q5 = if_else(grepl("2", q60),1,0,NULL),
+         used_yahoo_q5 = if_else(grepl("3", q60),1,0,NULL),
+         used_other_q5 = if_else(grepl("5", q60),1,0,NULL),
+         
+         just_one_sq1 = ifelse(str_length(se_beatles)==1, 1,0),
+         just_one_sq2 = ifelse(str_length(se_alcapone)==1, 1,0),
+         just_one_sq3 = ifelse(str_length(se_vangogh)==1, 1,0),
+         just_one_sq4 = ifelse(str_length(q58_55)==1, 1,0),
+         just_one_sq5 = ifelse(str_length(q60)==1, 1,0),
+         
+         google_qual = q60_1,
+         bing_qual = q60_2,
+         ddg_qual = q60_3,
+         yahoo_qual = q60_5,
+         
+         google_prior = ifelse(grepl("1", q58_66), 1, 0),
+         ddg_pior = ifelse(grepl("2", q58_66),1, 0),
+         bing_prior = ifelse(grepl("3", q58_66), 1, 0),
+         ecosia_prior = ifelse(grepl("4", q58_66), 1, 0),
+         yahoo_prior = ifelse(grepl("5", q58_66), 1, 0),
+         other_prior = ifelse(grepl("6", q58_66), 1, 0),
+         across(starts_with("assigned"), as.factor), # transform all assign vars to factors
+         across(ends_with("qual"), as.numeric))
+         
+```
+
+
+```{r}
+table(dfexp$choice)
+
+table(dfexp$assigned_bing)
+```
+# Exploratory analysis
+
+# search engine choice plot
+
+```{r echo=FALSE, warning=FALSE}
+
+# Check coding is correct with visualizations
+
+dfexp %>% 
+  filter(choice_search==1) %>% 
+  ggplot(aes(x=choice, fill = choice)) +
+  geom_bar(alpha = 0.7) +
+  scale_fill_discrete(drop=FALSE) + #to show columns with zeros
+          scale_x_discrete(drop=FALSE) + #to show columns with zeros
+  # theme_Publication() +
+  scale_fill_brewer(palette = "Set2") +
+  theme_Publication() +
+  theme(text = element_text(family = "LM Roman 10"))
+```
+
+
+```{r}
+
+# test = dfexp %>% 
+#   mutate(across(starts_with("used"), as.numeric)) 
+
+#' *This worked!!! Saves a lot of time. Mind I should use "across" much more. And apply, lapply, sapply too.*
+
+# test = test %>% 
+#   mutate(nbing = used_bing_q1 + used_bing_q2 + used_bing_q3) # This works too!
+```
+
+## creates dfs for comparison pA|D(A) vs pA|C
+
+```{r}
+# Create dfs for comparison with forced choice
+
+dfgoogle = dfexp %>% 
+  filter(forced_choice_s==1 | assigned_google==1) 
+
+dfbing = dfexp %>% 
+  filter(forced_choice_s==1 | assigned_bing==1) 
+
+dfyahoo = dfexp %>% 
+  filter(forced_choice_s==1 | assigned_yahoo==1) 
+
+dfddg = dfexp %>% 
+  filter(forced_choice_s==1 | assigned_duckduckgo==1) 
+
+```
+
+
+```{r}
+library(jtools)
+```
+
+Mind there are two ways to operationalize the effect: 
+
+1) compared with choice-screen
+
+2) compared with any other default
+
+
+
+## creates df for default condition 
+
+```{r}
+# DF for defaults in search
+dfexp_def_s = dfexp %>% 
+  filter(choice_search==0)
+```
+
+# Status Quo Effects Search
+
+## Bing
+```{r}
+# Bing Q1
+sqbingq1= glm(used_bing_q1 ~ forced_choice_s, data=dfbing, family ="binomial")
+
+#check effect on quality
+
+qualbing = lm(bing_qual ~ forced_choice_s, data = dfbing)
+
+summary(qualbing)
+
+plotbingq1 = effect_plot(sqbingq1, pred = "forced_choice_s", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotbingq1
+```
+
+
+*Interesting. Status quo effect goes down. People start switching. I need longer questionnaire. Hopefully, 5 enough. If not, run final version with 7 questions? Not sure it's worth it
+
+*Different comparison: Pb|B compared with any other default
+
+```{r}
+
+lm(data = dfexp, used_bing_q1 ~ assigned_bing)
+
+lm(data = dfexp, used_bing_q1 ~ assigned_bing + bing_qual + bing_prior) #It is working this time! Gather larger n too. But quality and prior use are correlated and my sample is not 
+
+bingq1 = glm(data = dfexp_def_s, used_bing_q1 ~ assigned_bing: bing_prior, family = "binomial")
+
+summary(bingq1)
+
+typeof(dfexp$bing_qual)
+
+lm(data = dfexp, used_bing_q3 ~ assigned_bing)
+```
+
+```{r}
+#'* Second experiment*
+lm(data = datexp, used_bing_q1 ~ assigned_bing)
+
+e2.test = lm(data = datexp, used_bing_q1 ~ assigned_bing:bing_prior + bing_qual)
+summary(e2.test) #there is an interaction effect. Prior use moderates the effect of the default
+
+e2.bingq1 = glm(data = datexp, used_bing_q1 ~ assigned_bing + bing_prior, family = "binomial")
+
+summary(e2.bingq1)
+
+#'*visualization*
+# E2. Bing Q1
+e2.sqbingq1= glm(used_bing_q1 ~ assigned_bing, data=datexp, family ="binomial")
+
+e2.plotbingq1 = effect_plot(e2.sqbingq1, pred = "assigned_bing", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+e2.plotbingq1
+```
+
+Now, do the same for Q5
+
+```{r}
+e2.sqbingq5= glm(used_bing_q5 ~ assigned_bing, data=datexp, family ="binomial")
+
+e2.plotbingq5 = effect_plot(e2.sqbingq5, pred = "assigned_bing", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+e2.plotbingq5
+```
+
+See how this effect affects Google
+
+## Video had no effect. Probably everyone pais attention. Check number of correct answers
+
+See if video had an effect... It did not work out. No difference
+```{r}
+# Creates status quo variable (for Q1)
+datexp = datexp %>% 
+  mutate(statquo = ifelse(assigned_bing ==1 & used_bing_q1==1 | assigned_google ==1 & used_google_q1==1, 1,0),
+         video = as.factor(video))
+
+mean(datexp$statquo)
+
+datbing = datexp %>% 
+  filter(assigned_bing==1) # New DF to compare just those assigned to Bing
+
+glmvideo = glm(data=datexp, formula=statquo ~ video, family = "binomial")
+
+summary(glmvideo)
+
+
+
+glm.video = effect_plot(glmvideo, pred = "video", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+glm.video
+
+```
+
+
+```{r}
+e2.googleq5= glm(used_google_q5 ~ assigned_bing, data=datexp, family ="binomial")
+
+e2.plotgoogleq5 = effect_plot(e2.googleq5, pred = "assigned_bing", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+e2.plotgoogleq5
+```
+Substantial effect! lowers use of Google! 
+
+
+
+
+```{r}
+#Bing Q3
+
+sqbingq3= glm(used_bing_q3 ~ forced_choice_s, data=dfbing, family ="binomial")
+
+plotbingq3 = effect_plot(sqbingq3, pred = "forced_choice_s", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotbingq3
+```
+
+## Yahoo
+
+Check status quo effects for Yahoo. There is no variance, so just report counts
+
+```{r}
+sqyahooq1= glm(used_yahoo_q1 ~ forced_choice_s, data=dfyahoo, family ="binomial")
+
+
+plotyahooq1 = effect_plot(sqyahooq1, pred = "forced_choice_s", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+
+#Now check for default data: pY|Y vs pY|Y`
+
+sqdefyahooq1 = glm(used_yahoo_q1 ~ assigned_yahoo, data=dfexp_def_s, family ="binomial")
+
+plotsqdefyahooq1 = effect_plot(sqdefyahooq1, pred = "assigned_yahoo", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+# Check q3
+
+sqdefyahooq3 = glm(used_yahoo_q3 ~ assigned_yahoo, data=dfexp_def_s, family ="binomial")
+
+plotsqdefyahooq3 = effect_plot(sqdefyahooq3, pred = "assigned_yahoo", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotyahooq1
+
+plotsqdefyahooq1
+
+plotsqdefyahooq3
+```
+
+## DuckDuck Go
+
+Do the same with DuckDuckGo
+
+```{r}
+sqdefddg1 = glm(used_duckduckgo_q1 ~ assigned_duckduckgo, data=dfexp_def_s, family ="binomial")
+
+plotsqdefddg1 = effect_plot(sqdefddg1, pred = "assigned_duckduckgo", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotsqdefddg1
+# Check q3
+
+sqdefddgq3 = glm(used_duckduckgo_q3 ~ assigned_duckduckgo, data=dfexp_def_s, family ="binomial")
+
+plotsqdefddgq3 = effect_plot(sqdefddgq3, pred = "assigned_duckduckgo", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotsqdefddgq3
+
+```
+
+
+
+```{r}
+sqyahooq3= glm(used_yahoo_q3 ~ forced_choice_s, data=dfyahoo, family ="binomial")
+
+plotyahooq3 = effect_plot(sqyahooq3, pred = "forced_choice_s", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotyahooq3
+```
+Compare with other defaults. Do chi-squared test. 
+
+```{r}
+
+yahooq1 = glm(data = dfexp_def_s, used_yahoo_q1 ~ assigned_yahoo + yahoo_prior, family = "binomial")
+
+summary(yahooq1)
+
+lm(data = dfexp_def_s, used_yahoo_q1 ~ assigned_yahoo + yahoo_prior + yahoo_qual)
+```
+
+## Big regression general analysis status quo effect
+
+There si something wrong with the default data set. Showing NAs in assigned to a
+
+```{r}
+dfexp_def_s = dfexp_def_s %>% 
+  mutate(statquo_sq1 = ifelse(assigned_bing==1 & used_bing_q1==1 | assigned_google==1 & used_google_q1==1 | assigned_duckduckgo==1 & used_duckduckgo_q1==1 | assigned_yahoo==1 & used_yahoo_q1==1, 1, 0),
+         statquo_sq3= ifelse(assigned_bing==1 & used_bing_q3==1 | assigned_google==1 & used_google_q3==1|assigned_duckduckgo==1 & used_duckduckgo_q3==1 | assigned_yahoo==1 & used_yahoo_q3==1, 1, 0),
+         prior_use = ifelse(assigned_google==1 & google_prior==1 | assigned_bing==1 & bing_prior==1 | assigned_duckduckgo==1 & ddg_pior==1 | assigned_yahoo==1 & yahoo_prior==1,1,0),
+         explor_sq1 = ifelse(str_length(se_beatles)>1, 1,0),
+         age = 2023 - as.numeric(q32),
+         age_c = case_when(age<30 ~ "18-29",
+                           age >29 & age <40 ~ "30-39",
+                           age >39 & age <50 ~ "40-49",
+                           age>49 & age <60 ~ "50-59",
+                           age>59 ~ "60 +"))
+
+
+lm(data=dfexp_def_s, formula= statquo_sq1 ~  prior_use)
+
+lm(data=dfexp_def_s, formula= statquo_sq1 ~ prior_use + age_c)
+
+```
+Data defaults without Google
+
+```{r}
+dfexp_def_s2 = dfexp_def_s %>% 
+  filter(assigned_google==0)
+```
+
+
+```{r}
+lm(data=dfexp_def_s2, formula= statquo_sq1 ~ explor_sq1 + prior_use)
+
+glmsqs1 = glm(data=dfexp_def_s2, formula= statquo_sq1 ~ explor_sq1 + prior_use, family = "binomial")
+
+summary(glmsqs1)
+```
+Interesting coefficients, qualitatively. Now, run glm because p>1
+
+```{r}
+mean(dfexp_def_s$statquo_sq1) 
+```
+
+## Check if those who use the default use another one too!
+
+This is important. q1 only a few use more than one, q3 many more explore. 
+
+```{r}
+# Create var for analysis
+
+dfexp_def_s = dfexp_def_s %>% 
+  mutate(se_assigned = case_when(assigned_google==1 ~ "Google",
+                                 assigned_bing==1 ~ "Bing",
+                                 assigned_duckduckgo==1 ~"DuckDuck Go",
+                                 assigned_yahoo==1 ~ "Yahoo"))
+```
+
+Code below irrelevant. q1 only one person used more than one 
+```{r}
+# glm_just_one= glm(just_one_sq1 ~ se_assigned, data=dfexp_def_s, family ="binomial")
+# 
+# plot_just_one_sq1 = effect_plot(glm_just_one, pred = "se_assigned", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+# 
+# plot_just_one_sq1
+
+table(dfexp_def_s$se_assigned, dfexp_def_s$just_one_sq1)
+
+table(dfexp_def_s$se_assigned, dfexp_def_s$just_one_sq2)
+
+table(dfexp_def_s$se_assigned, dfexp_def_s$just_one_sq3)
+```
+Code above is not what I need. The relevant variable is stat_quo_qi * just_one_qi
+
+```{r}
+dfexp_def_s = dfexp_def_s %>% 
+  mutate(just_default_sq1 = ifelse(statquo_sq1==1 & just_one_sq1==1,1,0),
+         just_default_sq3 = ifelse(statquo_sq3==1 & just_one_sq3==1,1,0))
+```
+
+```{r}
+table(dfexp_def_s$se_assigned, dfexp_def_s$just_default_sq1)
+
+table(dfexp_def_s$se_assigned, dfexp_def_s$just_default_sq3)
+```
+### Now with the second experiment
+
+```{r}
+datexp = datexp %>% 
+  mutate(se_assigned = case_when(assigned_google==1 ~ "Google",
+                                 assigned_bing==1 ~ "Bing"),
+         statquo_sq1 = ifelse(assigned_bing==1 & used_bing_q1==1 | assigned_google==1 & used_google_q1==1, 1, 0),
+         statquo_sq2 = ifelse(assigned_bing==1 & used_bing_q2==1 | assigned_google==1 & used_google_q2==1, 1, 0),
+         statquo_sq3= ifelse(assigned_bing==1 & used_bing_q3==1 | assigned_google==1 & used_google_q3==1, 1, 0),
+         statquo_sq4 = ifelse(assigned_bing==1 & used_bing_q4==1 | assigned_google==1 & used_google_q4==1, 1, 0),
+         statquo_sq5 = ifelse(assigned_bing==1 & used_bing_q5==1 | assigned_google==1 & used_google_q5==1, 1, 0),
+         prior_use = ifelse(assigned_google==1 & google_prior==1 | assigned_bing==1 & bing_prior==1,1,0),
+         just_default_sq1 = ifelse(statquo_sq1==1 & just_one_sq1==1,1,0),
+         just_default_sq2 = ifelse(statquo_sq2==1 & just_one_sq3==1,1,0),
+         just_default_sq3 = ifelse(statquo_sq3==1 & just_one_sq3==1,1,0),
+         just_default_sq4 = ifelse(statquo_sq4==1 & just_one_sq3==1,1,0),
+         just_default_sq5 = ifelse(statquo_sq5==1 & just_one_sq3==1,1,0))
+```
+
+
+```{r}
+table(datexp$se_assigned, datexp$just_default_sq1)
+
+table(datexp$se_assigned, datexp$just_default_sq2)
+
+table(datexp$se_assigned, datexp$just_default_sq3)
+
+table(datexp$se_assigned, datexp$just_default_sq4)
+
+table(datexp$se_assigned, datexp$just_default_sq5)
+```
+Interesting result. More people tend to use Bing exclusively over time.
+
+# Results Weather Apps
+
+```{r}
+
+# The same for weather apps part
+
+dfexp2 = dfexp %>% 
+  mutate(chose_wc = if_else(choice_screen_2 == 1, 1, 0, NULL),
+         chose_aw = if_else(choice_screen_2 == 2,1,0, NULL),
+         chose_wu = if_else(choice_screen_2 == 3, 1,0, NULL),
+         
+         choice_wa = factor(case_when(chose_wc == 1 ~ "Weather Channel",
+                            chose_aw == 1 ~ "AccuWeather",
+                            chose_wu == 1 ~ "Weather Underground"),
+                         levels = c("Weather Channel", 
+                                    "AccuWeather", 
+                                    "WeatherUnderground")),
+         
+         assigned_wc = ifelse(weather_do %in% "default_wc", 1, 0), 
+         assigned_aw = ifelse(weather_do %in% "default_aw", 1, 0),
+         assigned_wu = ifelse(weather_do %in% "default_wu", 1, 0),
+         
+         used_wc_q1 = if_else(grepl("1", app_austin), 1, 0, NULL),
+         used_aw_q1 = if_else(grepl("2", app_austin),1,0,NULL),
+         used_wu_q1 = if_else(grepl("3", app_austin),1,0,NULL),
+         used_other_q1 = if_else(grepl("4", app_austin),1,0,NULL),
+         
+         used_wc_q2 = if_else(grepl("1", app_cambridge), 1, 0, NULL),
+         used_aw_q2 = if_else(grepl("2", app_cambridge),1,0,NULL),
+         used_wu_q2 = if_else(grepl("3", app_cambridge),1,0,NULL),
+         
+         used_wc_q3 = if_else(grepl("1", app_cupertino), 1, 0, NULL),
+         used_aw_q3 = if_else(grepl("2", app_cupertino),1,0,NULL),
+         used_wu_q3 = if_else(grepl("3", app_cupertino),1,0,NULL),
+
+         ac_qual = q31_1,
+         aw_qual = q31_2,
+         wu_qual = q31_3,
+         
+         ac_prior = ifelse(grepl("1", q54), 1, 0),
+         aw_pior = ifelse(grepl("2", q54),1, 0),
+         wu_prior = ifelse(grepl("3", q54), 1, 0),
+         other_prior = ifelse(grepl("4", q54), 1, 0))
+         
+         
+```
+
+
+```{r}
+dfaw = dfexp2 %>% 
+  filter(forced_choice_w==1| assigned_aw==1) 
+  
+
+```
+
+One plot for sq q1 for each (a1_q1, a2_q1, a3_q1)
+
+Another for sq q3 for each (a1_q3, a2_q3, a3_q3)
+
+```{r}
+
+#AccuWeather
+sqawq1= glm(used_aw_q1 ~ forced_choice_w, data=dfaw, family ="binomial")
+
+plotawq1 = effect_plot(sqawq1, pred = "forced_choice_w", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotawq1
+
+```
+
+```{r}
+
+sqawq3= glm(used_aw_q3 ~ forced_choice_w, data=dfaw, family ="binomial")
+
+plotawq3 = effect_plot(sqawq3, pred = "forced_choice_w", interval = TRUE, plot.points = TRUE, jitter = c(0.2, 0.01), point.alpha = 0.4, colors = "Qual1")
+
+plotawq3
+
+```
+
+```{r}
+
+# Convert vars for analysis
+
+test = dfexp2 %>% 
+  mutate(across(starts_with("used"), as.numeric)) 
+
+#' *This worked!!! Saves a lot of time. Mind I should use "across" much more. And apply, lapply, sapply too.*
+
+test = test %>% 
+  mutate(nbing = used_bing_q1 + used_bing_q2 + used_bing_q3) # This works too!
+
+
+```
+
+```{r}
+
+```
+
+Effect_plot to show correlations browsers/s.engines controlling for changes in OSX market shares
+
+
+
