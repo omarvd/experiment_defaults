@@ -1412,20 +1412,20 @@ dfsq1v3s = pivot_longer(dfsq1v3s, cols = q3:q1, names_to = "q")
 
 table(dfsq1v3s$stat_quo, dfsq1v3s$q)
 
-
-dfsq1v3s %>% 
-  #select(-id) %>% 
-  tbl_cross(row = q3, col = stat_quo) %>% 
-  add_p("mcnemar.test.wide")
-
-tabsqs= dfsq1v3s %>% 
-  #select(-id) %>% 
-  tbl_cross(row = q3, col = stat_quo) %>% 
-  add_p("mcnemar.test.wide")
-
-tabsqs %>% 
-  as_flex_table() %>% 
-  flextable::save_as_docx(path = "tabsqs.docx")
+# 
+# dfsq1v3s %>% 
+#   #select(-id) %>% 
+#   tbl_cross(row = q3, col = stat_quo) %>% 
+#   add_p("mcnemar.test.wide")
+# 
+# tabsqs= dfsq1v3s %>% 
+#   #select(-id) %>% 
+#   tbl_cross(row = q3, col = stat_quo) %>% 
+#   add_p("mcnemar.test.wide")
+# 
+# tabsqs %>% 
+#   as_flex_table() %>% 
+#   flextable::save_as_docx(path = "tabsqs.docx")
 ```
 
 
@@ -1449,15 +1449,15 @@ tabsqs %>%
 
 
 ```{r}
-library(survival)
-
-clogit1 <- clogit(stat_quo ~ q3 + strata(prolific_id),
-                  data = dfsq1v3s)
-
-clogit2 <- clogit(stat_quo ~ q1 + strata(prolific_id),
-                  data = dfsq1v3s)
-
-summary(clogit2)
+# library(survival)
+# 
+# clogit1 <- clogit(stat_quo ~ q3 + strata(prolific_id),
+#                   data = dfsq1v3s)
+# 
+# clogit2 <- clogit(stat_quo ~ q1 + strata(prolific_id),
+#                   data = dfsq1v3s)
+# 
+# summary(clogit2)
 ```
 Check quality differences
 ```{r}
@@ -2083,10 +2083,14 @@ Effect_plot to show correlations browsers/s.engines controlling for changes in O
 ```{r, echo=FALSE, results='asis'}
 
 sumtable(data= dfbal, group = 'choice_search', group.test = T, out = "latex")
+
+sumtable(data= dfbal, group = 'choice_search', group.test = T, out = "browser")
 ```
 
 ```{r, echo=FALSE, results='asis'}
 
 sumtable(data= datbal, group = 'Bing_default', group.test = T, out = "latex")
+
+sumtable(data= datbal, group = 'Bing_default', group.test = T, out = "browser")
 
 ```
